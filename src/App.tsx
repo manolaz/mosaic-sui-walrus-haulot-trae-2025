@@ -7,6 +7,7 @@ import { MOSAIC_TAGLINE } from "./mosaic/config";
 import { Link, Route, Routes, useLocation } from "react-router-dom";
 import { Events } from "./pages/Events";
 import { Calendars } from "./pages/Calendars";
+import { ImportData } from "./pages/ImportData";
 
 function App() {
   const location = useLocation();
@@ -61,6 +62,11 @@ function App() {
               🎫 My Tickets
             </Button>
           </Link>
+          <Link to="/import">
+            <Button variant={location.pathname === "/import" ? "solid" : "soft"}>
+              📥 Import
+            </Button>
+          </Link>
           <ConnectButton />
         </Flex>
       </Flex>
@@ -82,6 +88,7 @@ function App() {
             <Route path="/calendars" element={<Calendars />} />
             <Route path="/create" element={<CreateEvent />} />
             <Route path="/mine" element={<MyTickets />} />
+            <Route path="/import" element={<ImportData />} />
           </Routes>
         </Container>
       </Container>
