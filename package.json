@@ -7,7 +7,10 @@
     "dev": "vite",
     "build": "tsc && vite build",
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "build:scripts": "tsc -p scripts/tsconfig.json",
+    "mint:tickets": "pnpm run build:scripts && node scripts/dist/mintTickets.js",
+    "load:data": "pnpm run build:scripts && node scripts/dist/loadData.js"
   },
   "dependencies": {
     "@mysten/dapp-kit": "0.19.9",
@@ -28,6 +31,7 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.17.0",
+    "@types/node": "^24.10.1",
     "@types/react": "^18.3.3",
     "@types/react-dom": "^18.3.0",
     "@typescript-eslint/eslint-plugin": "^8.43.0",
