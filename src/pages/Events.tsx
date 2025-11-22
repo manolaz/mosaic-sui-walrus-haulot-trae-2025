@@ -1,8 +1,10 @@
 import { Box, Container, Flex, Heading, Text } from "@radix-ui/themes";
+import { Link } from "react-router-dom";
 import { useSuiClientQuery } from "@mysten/dapp-kit";
 import { useNetworkVariable } from "../networkConfig";
 import seedEvents from "../data/events.json";
 import categories from "../data/categories.json";
+import organizers from "../data/organizers.json";
 
 type RawFields = {
   organizer: string;
@@ -31,6 +33,17 @@ function formatTime(ms: number): string {
   const day = d.toLocaleDateString();
   const time = d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
   return `${day} ${time}`;
+}
+
+function seedIdFor(e: any): string {
+  const titleSlug = String(e.title || "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+  const ts = Number.isFinite(Date.parse(e.startsAt))
+    ? Date.parse(e.startsAt)
+    : 0;
+  return `${titleSlug}-${ts}`;
 }
 
 export function Events() {
@@ -120,49 +133,109 @@ export function Events() {
     .filter((e) => e.startsMs > todayEnd)
     .sort((a, b) => a.startsMs - b.startsMs);
 
+  const seedObjs = (seedEvents as any[]).map((s) => {
+    const startsMs = Number.isFinite(Date.parse(s.startsAt))
+      ? Date.parse(s.startsAt)
+      : 0;
+    const endsMs = Number.isFinite(Date.parse(s.endsAt))
+      ? Date.parse(s.endsAt)
+      : 0;
+    const catName = (categories as any[]).find((c) => c.slug === s.categorySlug)
+      ?.name as string | undefined;
+    const orgName = (organizers as any[]).find(
+      (o) => o.slug === s.organizerSlug,
+    )?.name as string | undefined;
+    return {
+      id: `demo:${seedIdFor(s)}`,
+      organizerName: orgName,
+      title: s.title as string,
+      description: s.description as string,
+      startsMs,
+      endsMs,
+      categoryName: catName,
+    };
+  });
+
+  const seedTodayUpcoming = seedObjs
+    .filter(
+      (e) =>
+        e.startsMs >= now && e.startsMs >= todayStart && e.startsMs <= todayEnd,
+    )
+    .sort((a, b) => a.startsMs - b.startsMs);
+
+  const seedFuture = seedObjs
+    .filter((e) => e.startsMs > todayEnd)
+    .sort((a, b) => a.startsMs - b.startsMs);
+
   return (
     <Container>
       <Heading mb="3">🎉 Events</Heading>
       {!packageId ? <Text>Missing package ID</Text> : null}
       {txsPending || objsPending ? <Text>Loading...</Text> : null}
-      {!txsPending && events.length === 0 ? <Text>No events found</Text> : null}
-      {todayUpcoming.length > 0 ? <Heading size="4">☀️ Today</Heading> : null}
+      {!txsPending && events.length === 0 ? null : null}
+      {(events.length > 0 ? todayUpcoming : seedTodayUpcoming).length > 0 ? (
+        <Heading size="4">☀️ Today</Heading>
+      ) : null}
       <Flex direction="column" gap="2" mt="2">
-        {todayUpcoming.map((e) => (
-          <Box
+        {(events.length > 0 ? todayUpcoming : seedTodayUpcoming).map((e) => (
+          <Link
             key={e.id}
-            p="3"
-            style={{ border: "1px solid var(--gray-a4)", borderRadius: 16 }}
+            to={`/events/${e.id}`}
+            style={{ textDecoration: "none", color: "inherit" }}
           >
-            <Flex justify="between" align="center">
-              <Heading size="3">{e.title || e.id.slice(0, 8)}</Heading>
-              <Text>{formatTime(e.startsMs)}</Text>
-            </Flex>
-            <Text>{e.description}</Text>
-            {e.categoryName ? <Text>Category {e.categoryName}</Text> : null}
-            <Text>Organizer {e.organizer.slice(0, 8)}</Text>
-          </Box>
+            <Box
+              p="3"
+              style={{ border: "1px solid var(--gray-a4)", borderRadius: 16 }}
+            >
+              <Flex justify="between" align="center">
+                <Heading size="3">
+                  {e.title ||
+                    (typeof e.id === "string" ? e.id.slice(0, 8) : "")}
+                </Heading>
+                <Text>{formatTime(e.startsMs)}</Text>
+              </Flex>
+              <Text>{e.description}</Text>
+              {e.categoryName ? <Text>Category {e.categoryName}</Text> : null}
+              {"organizer" in e ? (
+                <Text>Organizer {(e as any).organizer.slice(0, 8)}</Text>
+              ) : e.organizerName ? (
+                <Text>Organizer {e.organizerName}</Text>
+              ) : null}
+            </Box>
+          </Link>
         ))}
       </Flex>
-      {future.length > 0 ? (
+      {(events.length > 0 ? future : seedFuture).length > 0 ? (
         <Heading mt="4" size="4">
           🌈 Upcoming
         </Heading>
       ) : null}
       <Flex direction="column" gap="2" mt="2">
-        {future.map((e) => (
-          <Box
+        {(events.length > 0 ? future : seedFuture).map((e) => (
+          <Link
             key={e.id}
-            p="3"
-            style={{ border: "1px solid var(--gray-a4)", borderRadius: 16 }}
+            to={`/events/${e.id}`}
+            style={{ textDecoration: "none", color: "inherit" }}
           >
-            <Flex justify="between" align="center">
-              <Heading size="3">{e.title || e.id.slice(0, 8)}</Heading>
-              <Text>{formatTime(e.startsMs)}</Text>
-            </Flex>
-            <Text>{e.description}</Text>
-            <Text>Organizer {e.organizer.slice(0, 8)}</Text>
-          </Box>
+            <Box
+              p="3"
+              style={{ border: "1px solid var(--gray-a4)", borderRadius: 16 }}
+            >
+              <Flex justify="between" align="center">
+                <Heading size="3">
+                  {e.title ||
+                    (typeof e.id === "string" ? e.id.slice(0, 8) : "")}
+                </Heading>
+                <Text>{formatTime(e.startsMs)}</Text>
+              </Flex>
+              <Text>{e.description}</Text>
+              {"organizer" in e ? (
+                <Text>Organizer {(e as any).organizer.slice(0, 8)}</Text>
+              ) : e.organizerName ? (
+                <Text>Organizer {e.organizerName}</Text>
+              ) : null}
+            </Box>
+          </Link>
         ))}
       </Flex>
     </Container>
