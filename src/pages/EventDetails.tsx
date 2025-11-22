@@ -26,6 +26,7 @@ import {
 import { getWalrusKeypair } from "../mosaic/walrus-config";
 import { saveBlobId, loadBlobId } from "../mosaic/storage";
 import { useState, useEffect } from "react";
+import { formatRangeMs, formatTimeMs, parseLocalDateTime } from "../utils/date";
 
 type RawFields = {
   organizer: string;
@@ -49,12 +50,7 @@ function decodeVecU8(v: any): string {
 }
 
 function formatRange(a: number, b: number): string {
-  const da = new Date(a);
-  const db = new Date(b);
-  const day = da.toLocaleDateString();
-  const ta = da.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
-  const tb = db.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
-  return `${day} ${ta}–${tb}`;
+  return formatRangeMs(a, b);
 }
 
 function seedIdFor(e: any): string {
@@ -62,14 +58,12 @@ function seedIdFor(e: any): string {
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-+|-+$/g, "");
-  const ts = Number.isFinite(Date.parse(e.startsAt))
-    ? Date.parse(e.startsAt)
-    : 0;
+  const ts = parseLocalDateTime(e.startsAt);
   return `${titleSlug}-${ts}`;
 }
 
 function hourLabel(ms: number): string {
-  return new Date(ms).toLocaleTimeString([], { hour: "2-digit" });
+  return formatTimeMs(ms);
 }
 
 function segmentOfHour(h: number): "Morning" | "Afternoon" | "Night" {

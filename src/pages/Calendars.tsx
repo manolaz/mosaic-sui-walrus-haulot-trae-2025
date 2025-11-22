@@ -4,6 +4,7 @@ import { useSuiClientQuery } from "@mysten/dapp-kit";
 import { useNetworkVariable } from "../networkConfig";
 import seedEvents from "../data/events.json";
 import organizers from "../data/organizers.json";
+import { formatDateMs, parseLocalDateTime } from "../utils/date";
 
 type RawFields = {
   organizer: string;
@@ -27,7 +28,7 @@ function decodeVecU8(v: any): string {
 }
 
 function formatDate(ms: number): string {
-  return new Date(ms).toLocaleDateString();
+  return formatDateMs(ms);
 }
 
 function seedIdFor(e: any): string {
@@ -35,9 +36,7 @@ function seedIdFor(e: any): string {
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-+|-+$/g, "");
-  const ts = Number.isFinite(Date.parse(e.startsAt))
-    ? Date.parse(e.startsAt)
-    : 0;
+  const ts = parseLocalDateTime(e.startsAt);
   return `${titleSlug}-${ts}`;
 }
 
@@ -105,9 +104,7 @@ export function Calendars() {
   const seedGroups: Record<string, any[]> = {} as any;
   (seedEvents as any[])
     .map((s) => {
-      const startsMs = Number.isFinite(Date.parse(s.startsAt))
-        ? Date.parse(s.startsAt)
-        : 0;
+      const startsMs = parseLocalDateTime(s.startsAt);
       return {
         id: `demo:${seedIdFor(s)}`,
         organizerSlug: s.organizerSlug as string,

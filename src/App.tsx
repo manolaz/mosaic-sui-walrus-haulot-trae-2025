@@ -2,8 +2,6 @@ import { ConnectButton } from "@mysten/dapp-kit";
 import { Box, Button, Container, Flex, Heading, Text } from "@radix-ui/themes";
 import { Marketplace } from "./pages/Marketplace";
 import { CreateEvent } from "./pages/CreateEvent";
-import { CreateEventNFT } from "./pages/CreateEventNFT";
-import { EventNFTDetails } from "./pages/EventNFTDetails";
 import { MyTickets } from "./pages/MyTickets";
 import { MOSAIC_TAGLINE } from "./mosaic/config";
 import { Link, Route, Routes, useLocation } from "react-router-dom";
@@ -98,10 +96,8 @@ function App() {
             <Route path="/" element={<Marketplace />} />
             <Route path="/events" element={<Events />} />
             <Route path="/events/:eventId" element={<EventDetails />} />
-            <Route path="/event-nft/:nftId" element={<EventNFTDetails />} />
             <Route path="/calendars" element={<Calendars />} />
             <Route path="/create" element={<CreateEvent />} />
-            <Route path="/create-nft" element={<CreateEventNFT />} />
             <Route path="/mine" element={<MyTickets />} />
             <Route path="/import" element={<ImportData />} />
           </Routes>
