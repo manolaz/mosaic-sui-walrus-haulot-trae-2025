@@ -4,10 +4,12 @@ import { Marketplace } from "./pages/Marketplace";
 import { CreateEvent } from "./pages/CreateEvent";
 import { MyTickets } from "./pages/MyTickets";
 import { MOSAIC_TAGLINE } from "./mosaic/config";
-import { useState } from "react";
+import { Link, Route, Routes, useLocation } from "react-router-dom";
+import { Events } from "./pages/Events";
+import { Calendars } from "./pages/Calendars";
 
 function App() {
-  const [tab, setTab] = useState<"market" | "create" | "mine">("market");
+  const location = useLocation();
   return (
     <>
       <Flex
@@ -25,23 +27,54 @@ function App() {
         </Box>
 
         <Flex align="center" gap="3">
-          <Button variant={tab === "market" ? "solid" : "soft"} onClick={() => setTab("market")}>
-            Marketplace
-          </Button>
-          <Button variant={tab === "create" ? "solid" : "soft"} onClick={() => setTab("create")}>
-            Create Event
-          </Button>
-          <Button variant={tab === "mine" ? "solid" : "soft"} onClick={() => setTab("mine")}>
-            My Tickets
-          </Button>
+          <Link to="/">
+            <Button variant={location.pathname === "/" ? "solid" : "soft"}>
+              Marketplace
+            </Button>
+          </Link>
+          <Link to="/events">
+            <Button
+              variant={location.pathname === "/events" ? "solid" : "soft"}
+            >
+              Events
+            </Button>
+          </Link>
+          <Link to="/calendars">
+            <Button
+              variant={location.pathname === "/calendars" ? "solid" : "soft"}
+            >
+              Calendars
+            </Button>
+          </Link>
+          <Link to="/create">
+            <Button
+              variant={location.pathname === "/create" ? "solid" : "soft"}
+            >
+              Create Event
+            </Button>
+          </Link>
+          <Link to="/mine">
+            <Button variant={location.pathname === "/mine" ? "solid" : "soft"}>
+              My Tickets
+            </Button>
+          </Link>
           <ConnectButton />
         </Flex>
       </Flex>
       <Container>
-        <Container mt="5" pt="2" px="4" style={{ background: "var(--gray-a2)", minHeight: 500 }}>
-          {tab === "market" ? <Marketplace /> : null}
-          {tab === "create" ? <CreateEvent /> : null}
-          {tab === "mine" ? <MyTickets /> : null}
+        <Container
+          mt="5"
+          pt="2"
+          px="4"
+          style={{ background: "var(--gray-a2)", minHeight: 500 }}
+        >
+          <Routes>
+            <Route path="/" element={<Marketplace />} />
+            <Route path="/events" element={<Events />} />
+            <Route path="/calendars" element={<Calendars />} />
+            <Route path="/create" element={<CreateEvent />} />
+            <Route path="/mine" element={<MyTickets />} />
+          </Routes>
         </Container>
       </Container>
     </>
