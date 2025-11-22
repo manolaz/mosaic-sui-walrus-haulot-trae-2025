@@ -2,13 +2,14 @@ import { Container, Flex, Heading, Text, Button } from "@radix-ui/themes";
 import { useCurrentAccount, useSuiClientQuery } from "@mysten/dapp-kit";
 import { useState } from "react";
 import { writeJsonToWalrus } from "../mosaic/walrus";
+import { getWalrusKeypair } from "../mosaic/walrus-config";
 
 export function Marketplace() {
   const account = useCurrentAccount();
   const { data: owned, isPending } = useSuiClientQuery(
     "getOwnedObjects",
     { owner: account?.address as string },
-    { enabled: !!account }
+    { enabled: !!account },
   );
   const [sponsorBlob, setSponsorBlob] = useState("");
   const [loyaltyBlob, setLoyaltyBlob] = useState("");
@@ -20,7 +21,7 @@ export function Marketplace() {
       activation: "sponsor",
       attendees: (owned.data || []).map((o) => o.data?.objectId || ""),
     };
-    const blobId = await writeJsonToWalrus(payload);
+    const blobId = await writeJsonToWalrus(payload, getWalrusKeypair());
     setSponsorBlob(blobId);
   }
   async function handleLoyaltyDataset() {
@@ -29,9 +30,12 @@ export function Marketplace() {
       organizer: account.address,
       timestamp: new Date().toISOString(),
       program: "loyalty",
-      points: (owned.data || []).map((o) => ({ objectId: o.data?.objectId || "", points: 1 })),
+      points: (owned.data || []).map((o) => ({
+        objectId: o.data?.objectId || "",
+        points: 1,
+      })),
     };
-    const blobId = await writeJsonToWalrus(payload);
+    const blobId = await writeJsonToWalrus(payload, getWalrusKeypair());
     setLoyaltyBlob(blobId);
   }
   return (
@@ -47,13 +51,25 @@ export function Marketplace() {
       <Flex direction="column" gap="2">
         <Text>🔎 Discover events and tickets</Text>
         <Heading size="4">🔗 Integrations</Heading>
-        <Text>Use attendance data for sponsor activations and loyalty programs.</Text>
+        <Text>
+          Use attendance data for sponsor activations and loyalty programs.
+        </Text>
         <Flex gap="2" align="center">
-          <Button onClick={handleSponsorActivation} disabled={!account || isPending}>🧩 Create Sponsor Activation Blob</Button>
+          <Button
+            onClick={handleSponsorActivation}
+            disabled={!account || isPending}
+          >
+            🧩 Create Sponsor Activation Blob
+          </Button>
           {sponsorBlob ? <Text>Blob: {sponsorBlob}</Text> : null}
         </Flex>
         <Flex gap="2" align="center">
-          <Button onClick={handleLoyaltyDataset} disabled={!account || isPending}>💖 Create Loyalty Dataset Blob</Button>
+          <Button
+            onClick={handleLoyaltyDataset}
+            disabled={!account || isPending}
+          >
+            💖 Create Loyalty Dataset Blob
+          </Button>
           {loyaltyBlob ? <Text>Blob: {loyaltyBlob}</Text> : null}
         </Flex>
       </Flex>

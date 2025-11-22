@@ -10,6 +10,7 @@ import {
   walrusBlobGatewayUrl,
 } from "../mosaic/walrus";
 import { saveBlobId, loadBlobId } from "../mosaic/storage";
+import { getWalrusKeypair } from "../mosaic/walrus-config";
 
 export function MyTickets() {
   const account = useCurrentAccount();
@@ -71,15 +72,18 @@ export function MyTickets() {
       reputationUrl,
       avatarBlobId: avatarBlobId || undefined,
     };
-    const blobId = await writeJsonToWalrus({
-      wallet: account.address,
-      profile,
-    });
+    const blobId = await writeJsonToWalrus(
+      {
+        wallet: account.address,
+        profile,
+      },
+      getWalrusKeypair(),
+    );
     setProfileBlobId(blobId);
   }
   async function handleAvatarSelected(file: File | null) {
     if (!file || !account) return;
-    const blobId = await writeFileToWalrus(file, "testnet");
+    const blobId = await writeFileToWalrus(file, getWalrusKeypair());
     setAvatarBlobId(blobId);
     const url = walrusBlobGatewayUrl(blobId, "testnet");
     setAvatarUrl(url);
@@ -93,7 +97,7 @@ export function MyTickets() {
       checkedIn,
       objects: (owned.data || []).map((o) => o.data?.objectId || ""),
     };
-    const blobId = await writeJsonToWalrus(dataset);
+    const blobId = await writeJsonToWalrus(dataset, getWalrusKeypair());
     setResult(`attendance:${blobId}`);
   }
   return (

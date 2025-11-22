@@ -1,72 +1,83 @@
-import { SuiJsonRpcClient } from "@mysten/sui/jsonRpc";
+import { SuiClient } from "@mysten/sui/client";
 import { getFullnodeUrl } from "@mysten/sui/client";
+import { walrus } from "@mysten/walrus";
+import type { Keypair } from "@mysten/sui/cryptography";
+
+const WALRUS_TESTNET_CONFIG = {
+  aggregator: 'https://aggregator.walrus-testnet.walrus.space',
+  publisher: 'https://publisher.walrus-testnet.walrus.space',
+  uploadRelay: 'https://upload-relay.testnet.walrus.space'
+};
+
+export function createWalrusClient(network: "devnet" | "testnet" | "mainnet" = "testnet") {
+  const client = new SuiClient({ 
+    url: getFullnodeUrl(network), 
+    network 
+  }).$extend(
+    walrus({
+      uploadRelay: {
+        host: WALRUS_TESTNET_CONFIG.uploadRelay,
+        sendTip: {
+          max: 1_000,
+        },
+      },
+    })
+  );
+  return client;
+}
 
 export async function writeJsonToWalrus(
   data: unknown,
+  signer: Keypair,
   network: "devnet" | "testnet" | "mainnet" = "testnet",
 ): Promise<string> {
-  const walrusMod = await import("@mysten/walrus");
-  const { walrus, WalrusFile } = walrusMod as any;
-  const client = new SuiJsonRpcClient({ url: getFullnodeUrl(network), network }).$extend(
-    walrus(),
-  );
-  const file = (WalrusFile as any).from({
-    contents: new TextEncoder().encode(JSON.stringify(data)),
-    identifier: "ticket.json",
-    tags: { "content-type": "application/json" },
+  const client = createWalrusClient(network);
+  const fileData = new TextEncoder().encode(JSON.stringify(data));
+  
+  const { blobId } = await client.walrus.writeBlob({
+    blob: fileData,
+    deletable: true,
+    epochs: 3,
+    signer,
   });
-  const res = await (client as any).walrus.writeFiles({ files: [file] });
-  const blobId = res[0]?.blobId ?? res?.blobId ?? "";
-  return blobId as string;
+  
+  return blobId;
 }
 
 export async function readJsonFromWalrus(
   blobId: string,
   network: "devnet" | "testnet" | "mainnet" = "testnet",
 ): Promise<unknown> {
-  const walrusMod = await import("@mysten/walrus");
-  const { walrus } = walrusMod as any;
-  const client = new SuiJsonRpcClient({ url: getFullnodeUrl(network), network }).$extend(
-    walrus(),
-  );
-  const file = await (client as any).walrus.getFiles({ ids: [blobId] });
+  const client = createWalrusClient(network);
+  const file = await client.walrus.getFiles({ ids: [blobId] });
   const json = await file[0].json();
   return json;
 }
 
 export async function writeFileToWalrus(
   file: File,
+  signer: Keypair,
   network: "devnet" | "testnet" | "mainnet" = "testnet",
 ): Promise<string> {
-  const walrusMod = await import("@mysten/walrus");
-  const { walrus, WalrusFile } = walrusMod as any;
-  const client = new SuiJsonRpcClient({ url: getFullnodeUrl(network), network }).$extend(
-    walrus(),
-  );
+  const client = createWalrusClient(network);
   const contents = new Uint8Array(await file.arrayBuffer());
-  const wf = (WalrusFile as any).from({
-    contents,
-    identifier: file.name || "file",
-    tags: { "content-type": file.type || "application/octet-stream" },
+  
+  const { blobId } = await client.walrus.writeBlob({
+    blob: contents,
+    deletable: true,
+    epochs: 3,
+    signer,
   });
-  const res = await (client as any).walrus.writeFiles({ files: [wf] });
-  const blobId = res[0]?.blobId ?? res?.blobId ?? "";
-  return blobId as string;
+  
+  return blobId;
 }
 
 export async function getWalrusBlobObjectUrl(
   blobId: string,
   network: "devnet" | "testnet" | "mainnet" = "testnet",
 ): Promise<string> {
-  const walrusMod = await import("@mysten/walrus");
-  const { walrus } = walrusMod as any;
-  const client = new SuiJsonRpcClient({ url: getFullnodeUrl(network), network }).$extend(
-    walrus(),
-  );
-  const files = await (client as any).walrus.getFiles({ ids: [blobId] });
-  const blob = await files[0].blob();
-  const url = URL.createObjectURL(blob);
-  return url;
+  const gatewayUrl = walrusBlobGatewayUrl(blobId, network);
+  return gatewayUrl;
 }
 
 export function walrusBlobGatewayUrl(

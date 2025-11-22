@@ -23,6 +23,7 @@ import {
   writeFileToWalrus,
   walrusBlobGatewayUrl,
 } from "../mosaic/walrus";
+import { getWalrusKeypair } from "../mosaic/walrus-config";
 import { saveBlobId, loadBlobId } from "../mosaic/storage";
 import { useState, useEffect } from "react";
 
@@ -232,7 +233,7 @@ export function EventDetails() {
           const file = new File([blob], name, {
             type: blob.type || "application/octet-stream",
           });
-          imageBlobId = await writeFileToWalrus(file, "testnet");
+          imageBlobId = await writeFileToWalrus(file, getWalrusKeypair());
           imageGatewayUrl = walrusBlobGatewayUrl(imageBlobId, "testnet");
         } catch {
           void 0;
@@ -253,7 +254,7 @@ export function EventDetails() {
         imageUrl: imageGatewayUrl || chosenImageUrl,
         imageBlobId: imageBlobId || undefined,
       };
-      const walrusBlobId = await writeJsonToWalrus(meta, "testnet");
+      const walrusBlobId = await writeJsonToWalrus(meta, getWalrusKeypair());
       setBlobId(walrusBlobId);
 
       const enc = new TextEncoder();
@@ -318,7 +319,7 @@ export function EventDetails() {
 
   async function handleEventImageSelected(file: File | null) {
     if (!file || !eventId) return;
-    const bId = await writeFileToWalrus(file, "testnet");
+    const bId = await writeFileToWalrus(file, getWalrusKeypair());
     setEventImageBlobId(bId);
     const url = walrusBlobGatewayUrl(bId, "testnet");
     setEventImageUrl(url);
@@ -327,7 +328,7 @@ export function EventDetails() {
 
   async function handleOrganizerImageSelected(file: File | null) {
     if (!file || !organizerKey) return;
-    const bId = await writeFileToWalrus(file, "testnet");
+    const bId = await writeFileToWalrus(file, getWalrusKeypair());
     setOrganizerBlobId(bId);
     const url = walrusBlobGatewayUrl(bId, "testnet");
     setOrganizerImageUrl(url);
