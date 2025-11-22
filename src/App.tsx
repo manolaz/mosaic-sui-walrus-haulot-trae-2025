@@ -6,6 +6,7 @@ import { MyTickets } from "./pages/MyTickets";
 import { MOSAIC_TAGLINE } from "./mosaic/config";
 import { Link, Route, Routes, useLocation } from "react-router-dom";
 import { Events } from "./pages/Events";
+import { EventDetails } from "./pages/EventDetails";
 import { Calendars } from "./pages/Calendars";
 import { ImportData } from "./pages/ImportData";
 
@@ -85,6 +86,7 @@ function App() {
           <Routes>
             <Route path="/" element={<Marketplace />} />
             <Route path="/events" element={<Events />} />
+            <Route path="/events/:eventId" element={<EventDetails />} />
             <Route path="/calendars" element={<Calendars />} />
             <Route path="/create" element={<CreateEvent />} />
             <Route path="/mine" element={<MyTickets />} />

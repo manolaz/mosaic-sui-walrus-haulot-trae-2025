@@ -3,8 +3,13 @@ import { useCurrentAccount, useSuiClientQuery } from "@mysten/dapp-kit";
 import { OwnedObjects } from "../OwnedObjects";
 import { importKeyHex, decryptJson } from "../mosaic/encryption";
 import type { EncryptedTicketPayload, UserProfile } from "../mosaic/types";
-import { useState, type ChangeEvent } from "react";
-import { writeJsonToWalrus } from "../mosaic/walrus";
+import { useState, useEffect, type ChangeEvent } from "react";
+import {
+  writeJsonToWalrus,
+  writeFileToWalrus,
+  walrusBlobGatewayUrl,
+} from "../mosaic/walrus";
+import { saveBlobId, loadBlobId } from "../mosaic/storage";
 
 export function MyTickets() {
   const account = useCurrentAccount();
@@ -19,6 +24,18 @@ export function MyTickets() {
   const [website, setWebsite] = useState("");
   const [reputationUrl, setReputationUrl] = useState("");
   const [profileBlobId, setProfileBlobId] = useState<string>("");
+  const [avatarBlobId, setAvatarBlobId] = useState<string>("");
+  const [avatarUrl, setAvatarUrl] = useState<string>("");
+
+  useEffect(() => {
+    if (account?.address) {
+      const existing = loadBlobId("profile", account.address);
+      if (existing) {
+        setAvatarBlobId(existing);
+        setAvatarUrl(walrusBlobGatewayUrl(existing, "testnet"));
+      }
+    }
+  }, [account?.address]);
   const [checkInToken, setCheckInToken] = useState<string>(crypto.randomUUID());
   const [checkedIn, setCheckedIn] = useState<boolean>(false);
   const qrData = account
@@ -52,12 +69,21 @@ export function MyTickets() {
       twitter,
       website,
       reputationUrl,
+      avatarBlobId: avatarBlobId || undefined,
     };
     const blobId = await writeJsonToWalrus({
       wallet: account.address,
       profile,
     });
     setProfileBlobId(blobId);
+  }
+  async function handleAvatarSelected(file: File | null) {
+    if (!file || !account) return;
+    const blobId = await writeFileToWalrus(file, "testnet");
+    setAvatarBlobId(blobId);
+    const url = walrusBlobGatewayUrl(blobId, "testnet");
+    setAvatarUrl(url);
+    saveBlobId("profile", account.address, blobId);
   }
   async function handleExportAttendance() {
     if (!account || !owned || ownedPending) return;
@@ -114,6 +140,25 @@ export function MyTickets() {
       >
         <Heading size="4">👤 Networking Profile</Heading>
         <Flex gap="2" direction="column" mt="2">
+          {avatarUrl ? (
+            <img
+              alt="Avatar"
+              src={avatarUrl}
+              style={{
+                width: 120,
+                height: 120,
+                borderRadius: 16,
+                objectFit: "cover",
+              }}
+            />
+          ) : null}
+          <input
+            type="file"
+            accept="image/*"
+            onChange={(e: ChangeEvent<HTMLInputElement>) =>
+              handleAvatarSelected(e.target.files?.[0] || null)
+            }
+          />
           <input
             placeholder="Display name"
             value={displayName}
