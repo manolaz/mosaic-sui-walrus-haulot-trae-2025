@@ -218,6 +218,28 @@ export function EventDetails() {
     setTxDigest(null);
     setBlobId(null);
     try {
+      const defaultImage = "/images/MOSAIC.png";
+      const chosenImageUrl = (eventImageUrl ||
+        imageUrl ||
+        defaultImage) as string;
+      let imageBlobId = _eventImageBlobId || "";
+      let imageGatewayUrl = "";
+      if (!imageBlobId) {
+        try {
+          const resp = await fetch(chosenImageUrl);
+          const blob = await resp.blob();
+          const name = chosenImageUrl.split("/").pop() || "ticket-image";
+          const file = new File([blob], name, {
+            type: blob.type || "application/octet-stream",
+          });
+          imageBlobId = await writeFileToWalrus(file, "testnet");
+          imageGatewayUrl = walrusBlobGatewayUrl(imageBlobId, "testnet");
+        } catch {
+          void 0;
+        }
+      } else {
+        imageGatewayUrl = walrusBlobGatewayUrl(imageBlobId, "testnet");
+      }
       const meta = {
         version: "1",
         type: "ticket",
@@ -228,6 +250,8 @@ export function EventDetails() {
         organizerSlug: (seed as any)?.organizerSlug,
         startsAt: new Date(startsMs).toISOString(),
         endsAt: new Date(endsMs).toISOString(),
+        imageUrl: imageGatewayUrl || chosenImageUrl,
+        imageBlobId: imageBlobId || undefined,
       };
       const walrusBlobId = await writeJsonToWalrus(meta, "testnet");
       setBlobId(walrusBlobId);
