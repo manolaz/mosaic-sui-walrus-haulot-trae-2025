@@ -43,10 +43,12 @@ async function ensureFunds(address: string) {
   }
 }
 
+function vecFromString(s: string): number[] {
+  return Array.from(new TextEncoder().encode(s));
+}
+
 async function createWalrusClient() {
-  const client: any = new SuiJsonRpcClient({ url: FULLNODE_URL, network: NETWORK }).$extend(
-    walrus(),
-  );
+  const client: any = new SuiJsonRpcClient({ url: FULLNODE_URL, network: NETWORK }).$extend(walrus());
   return client as any;
 }
 
@@ -54,16 +56,12 @@ async function writeWalrusJson(data: unknown, signer: any, owner: string): Promi
   const client = await createWalrusClient();
   const file = WalrusFile.from({
     contents: new TextEncoder().encode(JSON.stringify(data)),
-    identifier: "ticket.json",
+    identifier: "event.json",
     tags: { "content-type": "application/json" },
   });
   const res = await (client as any).walrus.writeFiles({ files: [file], signer, owner, epochs: 1, deletable: false });
   const blobId = res[0]?.blobId ?? res?.blobId ?? "";
   return blobId as string;
-}
-
-function vecFromString(s: string): number[] {
-  return Array.from(new TextEncoder().encode(s));
 }
 
 async function main() {
@@ -79,30 +77,19 @@ async function main() {
   }
 
   const events: EventSeed[] = readJson("events.json");
+  const categories = readJson("categories.json");
+  const organizers = readJson("organizers.json");
 
-  const minted: any[] = [];
+  const registry: any[] = [];
   for (const e of events) {
     const startsMs = Number.isFinite(Date.parse(e.startsAt)) ? Date.parse(e.startsAt) : 0;
     const endsMs = Number.isFinite(Date.parse(e.endsAt)) ? Date.parse(e.endsAt) : 0;
-
-    const ticketMeta = {
-      version: "1",
-      type: "ticket",
-      free: true,
-      title: e.title,
-      description: e.description,
-      categorySlug: e.categorySlug,
-      organizerSlug: e.organizerSlug,
-      startsAt: e.startsAt,
-      endsAt: e.endsAt,
-    };
     let walrusBlobId = "";
     try {
-      walrusBlobId = await writeWalrusJson(ticketMeta, keypair, address);
+      walrusBlobId = await writeWalrusJson(e, keypair, address);
     } catch (err: any) {
       console.warn(`Walrus write failed, continuing without blob: ${err?.message || err}`);
     }
-
     const tx = new Transaction();
     const eventObj = tx.moveCall({
       target: `${MOSAIC_PACKAGE_ID}::event::create`,
@@ -114,45 +101,26 @@ async function main() {
         tx.pure.u64(BigInt(endsMs)),
       ],
     });
-
-    const mintedTicket = tx.moveCall({
-      target: `${MOSAIC_PACKAGE_ID}::ticket::mint`,
-      arguments: [
-        eventObj,
-        tx.pure("vector<u8>", vecFromString(walrusBlobId)),
-        tx.pure("vector<u8>", []),
-        tx.pure.address(address),
-      ],
-    });
-
     tx.moveCall({
-      target: `${MOSAIC_PACKAGE_ID}::ticket::transfer_ticket`,
-      arguments: [mintedTicket, tx.pure.address(address)],
+      target: `0x2::transfer::public_transfer`,
+      typeArguments: [`${MOSAIC_PACKAGE_ID}::event::Event`],
+      arguments: [eventObj, tx.pure.address(address)],
     });
-
-
     const res = await client.signAndExecuteTransaction({ signer: keypair, transaction: tx });
     const details = await client.waitForTransaction({ digest: res.digest, options: { showEffects: true } });
-    const created = (details.effects?.created || []).find((c: any) => String(c.reference?.type || "").includes("::ticket::Ticket"));
-    const ticketId = created?.reference?.objectId || null;
-
-    minted.push({ txDigest: res.digest, ticketId, walrusBlobId, title: e.title, startsAt: e.startsAt });
-    console.log(`Minted ticket for '${e.title}'`, { digest: res.digest, ticketId, walrusBlobId });
+    const created = (details.effects?.created || []).find((c: any) => String(c.reference?.type || "").includes("::event::Event"));
+    const eventId = created?.reference?.objectId || null;
+    registry.push({ eventId, walrusBlobId, title: e.title, startsAt: e.startsAt, categorySlug: e.categorySlug, organizerSlug: e.organizerSlug });
+    console.log(`Created event '${e.title}'`, { digest: res.digest, eventId, walrusBlobId });
   }
 
-  const registry = {
-    network: NETWORK,
-    packageId: MOSAIC_PACKAGE_ID,
-    organizer: address,
-    minted,
-    timestamp: new Date().toISOString(),
-  };
   try {
-    const registryBlobId = await writeWalrusJson(registry, keypair, address);
-    console.log(`Registry blob: ${registryBlobId}`);
+    const regBlobId = await writeWalrusJson({ network: NETWORK, packageId: MOSAIC_PACKAGE_ID, organizer: address, events: registry, timestamp: new Date().toISOString() }, keypair, address);
+    console.log(`Event registry blob: ${regBlobId}`);
   } catch (err: any) {
     console.warn(`Walrus registry write failed: ${err?.message || err}`);
   }
+  console.log(`Loaded categories: ${categories.length}, organizers: ${organizers.length}, events: ${events.length}`);
 }
 
 main().catch((e: any) => {
