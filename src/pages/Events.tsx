@@ -5,6 +5,7 @@ import { useNetworkVariable } from "../networkConfig";
 import seedEvents from "../data/events.json";
 import categories from "../data/categories.json";
 import organizers from "../data/organizers.json";
+import { EventNFTs } from "../components/EventNFTs";
 
 type RawFields = {
   organizer: string;
@@ -170,6 +171,10 @@ export function Events() {
   return (
     <Container>
       <Heading mb="3">🎉 Events</Heading>
+
+      {/* Event NFTs Section */}
+      <EventNFTs />
+
       {!packageId ? <Text>Missing package ID</Text> : null}
       {txsPending || objsPending ? <Text>Loading...</Text> : null}
       {!txsPending && events.length === 0 ? null : null}
