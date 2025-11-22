@@ -1,57 +1,42 @@
-import { Box, Container, Flex, Heading, Text } from "@radix-ui/themes";
-import { useState } from "react";
-import { TicketMintForm } from "../components/TicketMintForm";
-import type { MosaicEvent, Ticket } from "../mosaic/types";
-import { encryptJson, generateKey, exportKeyHex } from "../mosaic/encryption";
+import { memo, useMemo, type ComponentProps } from "react";
+import { Container, Heading } from "@radix-ui/themes";
+import { UnifiedEventForm } from "../components/UnifiedEventForm";
 
-export function CreateEvent() {
-  const [events, setEvents] = useState<MosaicEvent[]>([]);
-  const [lastCipher, setLastCipher] = useState<string | null>(null);
+/**
+ * CreateEvent page
+ *
+ * Responsibilities:
+ * - Presents a focused page wrapper around `UnifiedEventForm`.
+ * - Defines and memoizes default form behavior for event creation.
+ * - Uses small subcomponents and a tiny hook to keep the page self‑contained and testable.
+ */
+function PageHeader() {
+  return <Heading mb="3">✏️ Create Event</Heading>;
+}
 
-  async function handleCreate(event: MosaicEvent, ticket: Ticket) {
-    const key = await generateKey();
-    const payload = {
-      version: "1",
-      eventId: event.id,
-      ticketId: ticket.id,
-      holder: ticket.holder,
-      tier: ticket.tier,
-      track: ticket.track,
-      attendeeType: ticket.attendeeType,
-    };
-    const { ciphertext, iv } = await encryptJson(key, payload);
-    const exported = await exportKeyHex(key);
-    setEvents((prev) => [event, ...prev]);
-    setLastCipher(`${ciphertext}:${iv}:${exported}`);
-  }
+/**
+ * Returns the default configuration used by the Create Event page.
+ * Extracted as a hook to centralize defaults and enable future extension
+ * (e.g., reading from query params or feature flags) without touching the page tree.
+ */
+function useCreateEventDefaults(): Pick<
+  ComponentProps<typeof UnifiedEventForm>,
+  "defaultMintTicket" | "defaultCreateNFT"
+> {
+  return {
+    defaultMintTicket: true,
+    defaultCreateNFT: false,
+  };
+}
+
+export const CreateEvent = memo(function CreateEvent() {
+  const defaults = useCreateEventDefaults();
+  const formProps = useMemo(() => defaults, [defaults]);
 
   return (
     <Container>
-      <Heading mb="3">✏️ Create Event</Heading>
-      <TicketMintForm onCreate={handleCreate} />
-      <Flex direction="column" mt="4" gap="2">
-        {events.length === 0 ? (
-          <Text>No events created</Text>
-        ) : (
-          <Heading size="4">🆕 Recent</Heading>
-        )}
-        {events.map((e) => (
-          <Box key={e.id} p="3" style={{ border: "1px solid var(--gray-a4)", borderRadius: 16 }}>
-            <Flex justify="between">
-              <Heading size="3">{e.title}</Heading>
-              <Text>{e.id.slice(0, 8)}</Text>
-            </Flex>
-            <Text>{e.description}</Text>
-            {e.tracks && e.tracks.length > 0 ? (
-              <Text>Tracks: {e.tracks.join(", ")}</Text>
-            ) : null}
-            {e.tiers && e.tiers.length > 0 ? (
-              <Text>Tiers: {e.tiers.join(", ")}</Text>
-            ) : null}
-          </Box>
-        ))}
-        {lastCipher ? <Text>Encrypted payload: {lastCipher.slice(0, 32)}…</Text> : null}
-      </Flex>
+      <PageHeader />
+      <UnifiedEventForm {...formProps} />
     </Container>
   );
-}
+});

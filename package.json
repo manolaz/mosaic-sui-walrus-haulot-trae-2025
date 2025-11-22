@@ -10,7 +10,8 @@
     "preview": "vite preview",
     "build:scripts": "tsc -p scripts/tsconfig.json",
     "mint:tickets": "pnpm run build:scripts && node scripts/dist/mintTickets.js",
-    "load:data": "pnpm run build:scripts && node scripts/dist/loadData.js"
+    "load:data": "pnpm run build:scripts && node scripts/dist/loadData.js",
+    "test": "vitest --environment jsdom"
   },
   "dependencies": {
     "@mysten/dapp-kit": "0.19.9",
@@ -42,6 +43,10 @@
     "eslint-plugin-react-refresh": "^0.4.20",
     "prettier": "^3.6.2",
     "typescript": "^5.9.2",
-    "vite": "^7.1.5"
+    "vite": "^7.1.5",
+    "vitest": "^2.0.0",
+    "@testing-library/react": "^16.0.0",
+    "@testing-library/jest-dom": "^6.4.8",
+    "jsdom": "^24.0.0"
   }
 }

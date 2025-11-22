@@ -4,6 +4,8 @@ import { useSuiClientQuery } from "@mysten/dapp-kit";
 import { useNetworkVariable } from "../networkConfig";
 import seedEvents from "../data/events.json";
 import organizers from "../data/organizers.json";
+import { formatDateMs, parseLocalDateTime } from "../utils/date";
+import { decodeVecU8 } from "../utils/sui";
 
 type RawFields = {
   organizer: string;
@@ -13,21 +15,8 @@ type RawFields = {
   ends_at_ms: string | number;
 };
 
-function decodeVecU8(v: any): string {
-  if (typeof v === "string") return v;
-  if (Array.isArray(v)) {
-    try {
-      const bytes = new Uint8Array(v as number[]);
-      return new TextDecoder().decode(bytes);
-    } catch {
-      return "";
-    }
-  }
-  return "";
-}
-
 function formatDate(ms: number): string {
-  return new Date(ms).toLocaleDateString();
+  return formatDateMs(ms);
 }
 
 function seedIdFor(e: any): string {
@@ -35,15 +24,17 @@ function seedIdFor(e: any): string {
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-+|-+$/g, "");
-  const ts = Number.isFinite(Date.parse(e.startsAt))
-    ? Date.parse(e.startsAt)
-    : 0;
+  const ts = parseLocalDateTime(e.startsAt);
   return `${titleSlug}-${ts}`;
 }
 
 export function Calendars() {
   const packageId = useNetworkVariable("MOSAIC_PACKAGE_ID");
-  const { data: txs, isPending: txsPending } = useSuiClientQuery(
+  const {
+    data: txs,
+    isPending: txsPending,
+    error: txsError,
+  } = useSuiClientQuery(
     "queryTransactionBlocks",
     {
       filter: {
@@ -72,7 +63,11 @@ export function Calendars() {
     });
   });
 
-  const { data: objects, isPending: objPending } = useSuiClientQuery(
+  const {
+    data: objects,
+    isPending: objPending,
+    error: objError,
+  } = useSuiClientQuery(
     "multiGetObjects",
     { ids, options: { showType: true, showContent: true } },
     { enabled: ids.length > 0 },
@@ -105,9 +100,7 @@ export function Calendars() {
   const seedGroups: Record<string, any[]> = {} as any;
   (seedEvents as any[])
     .map((s) => {
-      const startsMs = Number.isFinite(Date.parse(s.startsAt))
-        ? Date.parse(s.startsAt)
-        : 0;
+      const startsMs = parseLocalDateTime(s.startsAt);
       return {
         id: `demo:${seedIdFor(s)}`,
         organizerSlug: s.organizerSlug as string,
@@ -127,6 +120,8 @@ export function Calendars() {
     <Container>
       <Heading mb="3">🗓️ Calendars</Heading>
       {!packageId ? <Text>Missing package ID</Text> : null}
+      {txsError ? <Text color="red">Error loading transactions</Text> : null}
+      {objError ? <Text color="red">Error loading calendar events</Text> : null}
       {txsPending || objPending ? <Text>Loading...</Text> : null}
       {organizerKeys.length === 0 && !txsPending && !objPending ? null : null}
       <Flex direction="column" gap="3">

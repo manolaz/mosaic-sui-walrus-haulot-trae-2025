@@ -7,6 +7,7 @@ import { useState, type ChangeEvent } from "react";
 import type { MosaicEvent, Ticket } from "../mosaic/types";
 import { useNetworkVariable } from "../networkConfig";
 import { Transaction } from "@mysten/sui/transactions";
+import { isValidRange, parseLocalDateTime } from "../utils/date";
 
 type Props = {
   onCreate: (event: MosaicEvent, ticket: Ticket) => void;
@@ -35,12 +36,8 @@ export function TicketMintForm({ onCreate }: Props) {
     setBusy(true);
     setTxDigest(null);
     try {
-      const startsMs = Number.isFinite(Date.parse(startsAt))
-        ? Date.parse(startsAt)
-        : 0;
-      const endsMs = Number.isFinite(Date.parse(endsAt))
-        ? Date.parse(endsAt)
-        : 0;
+      const startsMs = parseLocalDateTime(startsAt);
+      const endsMs = parseLocalDateTime(endsAt);
       const enc = new TextEncoder();
       const titleBytes = Array.from(enc.encode(title));
       const descriptionBytes = Array.from(enc.encode(description));
@@ -243,15 +240,7 @@ export function TicketMintForm({ onCreate }: Props) {
         </Flex>
         <Button
           onClick={handleSubmit}
-          disabled={
-            !account ||
-            busy ||
-            !startsAt ||
-            !endsAt ||
-            !Number.isFinite(Date.parse(startsAt)) ||
-            !Number.isFinite(Date.parse(endsAt)) ||
-            Date.parse(endsAt) <= Date.parse(startsAt)
-          }
+          disabled={!account || busy || !startsAt || !endsAt || !isValidRange(startsAt, endsAt)}
         >
           Create Event and Mint Ticket
         </Button>
