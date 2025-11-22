@@ -1,6 +1,7 @@
 module mosaic::event {
     use sui::tx_context;
     use sui::object;
+    use sui::transfer;
 
     struct Event has key {
         id: object::UID,
@@ -30,5 +31,9 @@ module mosaic::event {
 
     public fun organizer(e: &Event): address {
         e.organizer
+    }
+
+    public fun share(e: Event) {
+        transfer::share_object(e)
     }
 }
