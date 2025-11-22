@@ -1,10 +1,25 @@
-import { Box, Container, Flex, Heading, Text, Badge } from "@radix-ui/themes";
+import {
+  Box,
+  Container,
+  Flex,
+  Heading,
+  Text,
+  Badge,
+  Button,
+} from "@radix-ui/themes";
 import { Link, useParams } from "react-router-dom";
 import { useSuiClientQuery } from "@mysten/dapp-kit";
 import { useNetworkVariable } from "../networkConfig";
 import seedEvents from "../data/events.json";
 import categories from "../data/categories.json";
 import organizers from "../data/organizers.json";
+import {
+  useCurrentAccount,
+  useSignAndExecuteTransaction,
+} from "@mysten/dapp-kit";
+import { Transaction } from "@mysten/sui/transactions";
+import { writeJsonToWalrus } from "../mosaic/walrus";
+import { useState } from "react";
 
 type RawFields = {
   organizer: string;
@@ -109,6 +124,8 @@ function buildAgenda(startsMs: number, endsMs: number, seed: any | null) {
 export function EventDetails() {
   const { eventId } = useParams();
   const packageId = useNetworkVariable("MOSAIC_PACKAGE_ID");
+  const account = useCurrentAccount();
+  const { mutateAsync: signAndExecute } = useSignAndExecuteTransaction();
   const isDemo = typeof eventId === "string" && eventId.startsWith("demo:");
   const demoSlug = isDemo ? String(eventId).slice(5) : "";
   const seed = isDemo
@@ -156,30 +173,299 @@ export function EventDetails() {
   const catName = fields ? undefined : catNameSeed;
   const orgName = fields ? undefined : orgNameSeed;
   const agenda = buildAgenda(startsMs, endsMs, seed || null);
+  const [busy, setBusy] = useState(false);
+  const [txDigest, setTxDigest] = useState<string | null>(null);
+  const [blobId, setBlobId] = useState<string | null>(null);
+  const imageUrl = isDemo ? (seed as any)?.imageUrl : undefined;
+  const venue = isDemo ? (seed as any)?.venue : undefined;
+  const city = isDemo ? (seed as any)?.city : undefined;
+  const capacity = isDemo ? (seed as any)?.capacity : undefined;
+  const tags: string[] = isDemo ? (seed as any)?.tags || [] : [];
+  const tracks: string[] = isDemo ? (seed as any)?.tracks || [] : [];
+  const tiers: string[] = isDemo ? (seed as any)?.tiers || [] : [];
+  const attendeeTypes: string[] = isDemo
+    ? (seed as any)?.attendeeTypes || []
+    : [];
+
+  const organizerInfo = isDemo
+    ? (organizers as any[]).find((o) => o.slug === (seed as any)?.organizerSlug)
+    : undefined;
+  const goalText = isDemo
+    ? `Connect developers in ${city || "the city"} with hands-on sessions and open collaboration across ${tracks.join(", ") || "tracks"}.`
+    : undefined;
+  const isSpecialTraeEvent = String(title || "").includes(
+    "TRAE Meetup&Vibe Coding Experience@Vietnam",
+  );
+
+  const isFreeSeed =
+    !!seed &&
+    Array.isArray((seed as any).tiers) &&
+    (seed as any).tiers.includes("Free");
+
+  async function handleClaimFreeTicket() {
+    if (!account || !packageId) return;
+    setBusy(true);
+    setTxDigest(null);
+    setBlobId(null);
+    try {
+      const meta = {
+        version: "1",
+        type: "ticket",
+        free: true,
+        title: title || "",
+        description: description || "",
+        categorySlug: (seed as any)?.categorySlug,
+        organizerSlug: (seed as any)?.organizerSlug,
+        startsAt: new Date(startsMs).toISOString(),
+        endsAt: new Date(endsMs).toISOString(),
+      };
+      const walrusBlobId = await writeJsonToWalrus(meta, "testnet");
+      setBlobId(walrusBlobId);
+
+      const enc = new TextEncoder();
+      const blobBytes = Array.from(enc.encode(walrusBlobId));
+      const authenticity = [] as number[];
+
+      const tx = new Transaction();
+      const eventRef = isDemo
+        ? tx.moveCall({
+            target: `${packageId}::event::create`,
+            arguments: [
+              tx.pure.address(account.address),
+              tx.pure("vector<u8>", Array.from(enc.encode(title || ""))),
+              tx.pure("vector<u8>", Array.from(enc.encode(description || ""))),
+              tx.pure.u64(BigInt(startsMs)),
+              tx.pure.u64(BigInt(endsMs)),
+            ],
+          })
+        : tx.object(eventId as string);
+
+      const mintedTicket = tx.moveCall({
+        target: `${packageId}::ticket::mint`,
+        arguments: [
+          eventRef,
+          tx.pure("vector<u8>", blobBytes),
+          tx.pure("vector<u8>", authenticity),
+          tx.pure.address(account.address),
+        ],
+      });
+
+      tx.moveCall({
+        target: `${packageId}::ticket::transfer_ticket`,
+        arguments: [mintedTicket, tx.pure.address(account.address)],
+      });
+
+      const res = await signAndExecute({ transaction: tx });
+      setTxDigest((res as any)?.digest || null);
+    } finally {
+      setBusy(false);
+    }
+  }
 
   return (
     <Container>
       <Flex align="center" justify="between" mb="3">
-        <Heading>🎟️ {title}</Heading>
+        <Heading>{title}</Heading>
         <Link to="/events">
           <Text>Back</Text>
         </Link>
       </Flex>
       {isPending ? <Text>Loading...</Text> : null}
-      <Box
-        p="3"
-        style={{ border: "1px solid var(--gray-a4)", borderRadius: 16 }}
-      >
-        <Text>{description}</Text>
-        <Flex gap="2" mt="2" align="center">
-          <Badge>{formatRange(startsMs, endsMs)}</Badge>
-          {catName ? <Badge color="green">{catName}</Badge> : null}
-          {orgName ? <Badge color="blue">{orgName}</Badge> : null}
-          {organizer ? (
-            <Badge color="blue">{organizer.slice(0, 8)}</Badge>
+      <Flex gap="4">
+        <Box style={{ flex: 2 }}>
+          {imageUrl ? (
+            <Box
+              p="0"
+              style={{
+                overflow: "hidden",
+                borderRadius: 20,
+                border: "1px solid var(--gray-a4)",
+              }}
+            >
+              <img src={imageUrl} alt={title || "Event image"} />
+            </Box>
           ) : null}
-        </Flex>
-      </Box>
+          <Box
+            mt="3"
+            p="3"
+            style={{ border: "1px solid var(--gray-a4)", borderRadius: 16 }}
+          >
+            <Flex gap="2" align="center" wrap="wrap">
+              <Badge>{formatRange(startsMs, endsMs)}</Badge>
+              {venue ? <Badge color="yellow">{venue}</Badge> : null}
+              {city ? <Badge color="yellow">{city}</Badge> : null}
+              {capacity ? (
+                <Badge color="orange">Capacity {capacity}</Badge>
+              ) : null}
+              {catName ? <Badge color="green">{catName}</Badge> : null}
+              {orgName ? <Badge color="blue">{orgName}</Badge> : null}
+              {organizer ? (
+                <Badge color="blue">{organizer.slice(0, 8)}</Badge>
+              ) : null}
+              {tiers?.length ? (
+                <Badge color="purple">{tiers.join(" / ")}</Badge>
+              ) : null}
+            </Flex>
+            <Flex gap="2" mt="2" wrap="wrap">
+              {tags.map((t, i) => (
+                <Badge key={`${t}-${i}`} variant="soft">
+                  {t}
+                </Badge>
+              ))}
+            </Flex>
+          </Box>
+          <Box
+            mt="3"
+            p="3"
+            style={{ border: "1px solid var(--gray-a4)", borderRadius: 16 }}
+          >
+            <Heading size="4">About Event</Heading>
+            <Text mt="2">{description}</Text>
+          </Box>
+          {goalText ? (
+            <Box
+              mt="3"
+              p="3"
+              style={{ border: "1px solid var(--gray-a4)", borderRadius: 16 }}
+            >
+              <Heading size="4">Goal</Heading>
+              <Text mt="2">{goalText}</Text>
+            </Box>
+          ) : null}
+          {organizerInfo ? (
+            <Box
+              mt="3"
+              p="3"
+              style={{ border: "1px solid var(--gray-a4)", borderRadius: 16 }}
+            >
+              <Heading size="4">Organizer</Heading>
+              <Text mt="2">{organizerInfo.name}</Text>
+              {organizerInfo.website ? (
+                <Text mt="1" size="2">
+                  {organizerInfo.website}
+                </Text>
+              ) : null}
+              {organizerInfo.twitter ? (
+                <Text mt="1" size="2">
+                  {organizerInfo.twitter}
+                </Text>
+              ) : null}
+            </Box>
+          ) : null}
+          {isSpecialTraeEvent ? (
+            <Box
+              mt="3"
+              p="3"
+              style={{ border: "1px solid var(--gray-a4)", borderRadius: 16 }}
+            >
+              <Heading size="4">Rewards</Heading>
+              <Text mt="2">Winner: 3,500,000 VND</Text>
+              <Text mt="1">Runner Up (2): 1,800,000 VND each</Text>
+              <Text mt="1">Second Runner Up (3): 1,000,000 VND each</Text>
+            </Box>
+          ) : null}
+          {isSpecialTraeEvent ? (
+            <Box
+              mt="3"
+              p="3"
+              style={{ border: "1px solid var(--gray-a4)", borderRadius: 16 }}
+            >
+              <Heading size="4">Community</Heading>
+              <Text mt="2">Reddit: https://www.reddit.com/r/Trae_ai/</Text>
+              <Text mt="1">Discord: https://discord.gg/d8QBfGBWNF</Text>
+            </Box>
+          ) : null}
+        </Box>
+        <Box style={{ flex: 1 }}>
+          <Box
+            p="3"
+            style={{ border: "1px solid var(--gray-a4)", borderRadius: 16 }}
+          >
+            {isDemo && isFreeSeed ? (
+              <Button
+                onClick={handleClaimFreeTicket}
+                disabled={!account || !packageId || busy}
+                variant="solid"
+              >
+                {busy ? "Claiming…" : "Claim free ticket"}
+              </Button>
+            ) : null}
+            {txDigest ? (
+              <Text mt="2" size="2">
+                Tx: {txDigest}
+              </Text>
+            ) : null}
+            {blobId ? (
+              <Text mt="1" size="2">
+                Walrus blob: {blobId}
+              </Text>
+            ) : null}
+          </Box>
+          <Heading mt="4" size="4">
+            Agenda
+          </Heading>
+          <Flex direction="column" gap="3" mt="2">
+            {agenda.map((section, i) => (
+              <Box
+                key={`${section.label}-${i}`}
+                p="3"
+                style={{ border: "1px solid var(--gray-a4)", borderRadius: 16 }}
+              >
+                <Heading size="3">{section.label}</Heading>
+                <Flex direction="column" gap="1" mt="2">
+                  {section.items.map((it, j) => (
+                    <Flex
+                      key={`${i}-${j}`}
+                      justify="between"
+                      align="center"
+                      style={{
+                        padding: 8,
+                        border: "1px solid var(--gray-a4)",
+                        borderRadius: 12,
+                      }}
+                    >
+                      <Text>{hourLabel(it.time)}</Text>
+                      <Text>{it.title}</Text>
+                    </Flex>
+                  ))}
+                </Flex>
+              </Box>
+            ))}
+          </Flex>
+          {tracks?.length ? (
+            <Box
+              mt="3"
+              p="3"
+              style={{ border: "1px solid var(--gray-a4)", borderRadius: 16 }}
+            >
+              <Heading size="3">Tracks</Heading>
+              <Flex gap="2" mt="2" wrap="wrap">
+                {tracks.map((t, i) => (
+                  <Badge key={`${t}-${i}`} variant="soft">
+                    {t}
+                  </Badge>
+                ))}
+              </Flex>
+            </Box>
+          ) : null}
+          {attendeeTypes?.length ? (
+            <Box
+              mt="3"
+              p="3"
+              style={{ border: "1px solid var(--gray-a4)", borderRadius: 16 }}
+            >
+              <Heading size="3">Attendee Types</Heading>
+              <Flex gap="2" mt="2" wrap="wrap">
+                {attendeeTypes.map((t, i) => (
+                  <Badge key={`${t}-${i}`} variant="soft">
+                    {t}
+                  </Badge>
+                ))}
+              </Flex>
+            </Box>
+          ) : null}
+        </Box>
+      </Flex>
       <Heading mt="4" size="4">
         🕰️ Agenda
       </Heading>
