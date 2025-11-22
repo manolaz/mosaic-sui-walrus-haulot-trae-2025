@@ -56,13 +56,11 @@ module mosaic::event {
         event_id: ID,
         nft_id: ID,
         organizer: address,
-        metadata_blob_id: Option<String>,
     }
 
     struct EventMetadataUpdated has copy, drop {
         event_id: ID,
         nft_id: ID,
-        new_metadata_blob_id: String,
     }
 
     // Create original event (backward compatibility)
@@ -117,7 +115,6 @@ module mosaic::event {
             event_id,
             nft_id: object::uid_to_inner(&nft.id),
             organizer: event.organizer,
-            metadata_blob_id,
         });
         
         nft
@@ -129,14 +126,11 @@ module mosaic::event {
         new_metadata_blob_id: String,
         ctx: &mut TxContext
     ) {
-        assert!(nft.organizer == tx_context::sender(ctx), 0); // Only organizer can update
-        
+        assert!(nft.organizer == tx_context::sender(ctx), 0);
         nft.metadata_blob_id = option::some(new_metadata_blob_id);
-        
         sui_event::emit(EventMetadataUpdated {
             event_id: nft.event_id,
             nft_id: object::uid_to_inner(&nft.id),
-            new_metadata_blob_id: *option::borrow(&nft.metadata_blob_id),
         });
     }
 
@@ -146,7 +140,7 @@ module mosaic::event {
         attributes: vector<u8>,
         ctx: &mut TxContext
     ) {
-        assert!(nft.organizer == tx_context::sender(ctx), 0); // Only organizer can update
+        assert!(nft.organizer == tx_context::sender(ctx), 0);
         nft.mutable_attributes = attributes;
     }
 
