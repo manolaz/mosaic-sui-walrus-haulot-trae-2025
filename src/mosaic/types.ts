@@ -6,6 +6,9 @@ export type MosaicEvent = {
   startsAt: string;
   endsAt: string;
   reputationScore: number;
+  tracks?: string[];
+  tiers?: string[];
+  attendeeTypes?: string[];
 };
 
 export type EncryptedTicketPayload = {
@@ -16,6 +19,9 @@ export type EncryptedTicketPayload = {
   blobId?: string;
   ciphertext?: string;
   iv?: string;
+  tier?: string;
+  track?: string;
+  attendeeType?: string;
 };
 
 export type Ticket = {
@@ -25,9 +31,26 @@ export type Ticket = {
   holder: string;
   walrusBlobId?: string;
   accessPolicyPackageId?: string;
+  tier?: string;
+  track?: string;
+  attendeeType?: string;
+  checkedIn?: boolean;
+  checkInToken?: string;
+  profileOptIn?: boolean;
+  profileBlobId?: string;
+  reputationUrl?: string;
 };
 
 export type SealKeyServer = {
   objectId: string;
   url: string;
+};
+
+export type UserProfile = {
+  displayName: string;
+  bio?: string;
+  email?: string;
+  twitter?: string;
+  website?: string;
+  reputationUrl?: string;
 };

@@ -10,7 +10,15 @@ export function CreateEvent() {
 
   async function handleCreate(event: MosaicEvent, ticket: Ticket) {
     const key = await generateKey();
-    const payload = { version: "1", eventId: event.id, ticketId: ticket.id, holder: ticket.holder };
+    const payload = {
+      version: "1",
+      eventId: event.id,
+      ticketId: ticket.id,
+      holder: ticket.holder,
+      tier: ticket.tier,
+      track: ticket.track,
+      attendeeType: ticket.attendeeType,
+    };
     const { ciphertext, iv } = await encryptJson(key, payload);
     const exported = await exportKeyHex(key);
     setEvents((prev) => [event, ...prev]);
@@ -34,6 +42,12 @@ export function CreateEvent() {
               <Text>{e.id.slice(0, 8)}</Text>
             </Flex>
             <Text>{e.description}</Text>
+            {e.tracks && e.tracks.length > 0 ? (
+              <Text>Tracks: {e.tracks.join(", ")}</Text>
+            ) : null}
+            {e.tiers && e.tiers.length > 0 ? (
+              <Text>Tiers: {e.tiers.join(", ")}</Text>
+            ) : null}
           </Box>
         ))}
         {lastCipher ? <Text>Encrypted payload: {lastCipher.slice(0, 32)}…</Text> : null}

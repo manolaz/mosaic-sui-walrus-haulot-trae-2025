@@ -1,9 +1,10 @@
 import { Box, Button, Container, Flex, Heading, Text } from "@radix-ui/themes";
-import { useCurrentAccount } from "@mysten/dapp-kit";
+import { useCurrentAccount, useSuiClientQuery } from "@mysten/dapp-kit";
 import { OwnedObjects } from "../OwnedObjects";
 import { importKeyHex, decryptJson } from "../mosaic/encryption";
-import type { EncryptedTicketPayload } from "../mosaic/types";
+import type { EncryptedTicketPayload, UserProfile } from "../mosaic/types";
 import { useState, type ChangeEvent } from "react";
+import { writeJsonToWalrus } from "../mosaic/walrus";
 
 export function MyTickets() {
   const account = useCurrentAccount();
@@ -11,6 +12,21 @@ export function MyTickets() {
   const [iv, setIv] = useState("");
   const [keyHex, setKeyHex] = useState("");
   const [result, setResult] = useState<string>("");
+  const [displayName, setDisplayName] = useState("");
+  const [bio, setBio] = useState("");
+  const [email, setEmail] = useState("");
+  const [twitter, setTwitter] = useState("");
+  const [website, setWebsite] = useState("");
+  const [reputationUrl, setReputationUrl] = useState("");
+  const [profileBlobId, setProfileBlobId] = useState<string>("");
+  const [checkInToken, setCheckInToken] = useState<string>(crypto.randomUUID());
+  const [checkedIn, setCheckedIn] = useState<boolean>(false);
+  const qrData = account ? `mosaic:ticket:${account.address}:${checkInToken}` : "";
+  const { data: owned, isPending: ownedPending } = useSuiClientQuery(
+    "getOwnedObjects",
+    { owner: account?.address as string },
+    { enabled: !!account }
+  );
 
   async function handleDecrypt() {
     try {
@@ -20,6 +36,30 @@ export function MyTickets() {
     } catch {
       setResult("Decryption failed");
     }
+  }
+  async function handleSaveProfile() {
+    if (!account) return;
+    const profile: UserProfile = {
+      displayName,
+      bio,
+      email,
+      twitter,
+      website,
+      reputationUrl,
+    };
+    const blobId = await writeJsonToWalrus({ wallet: account.address, profile });
+    setProfileBlobId(blobId);
+  }
+  async function handleExportAttendance() {
+    if (!account || !owned || ownedPending) return;
+    const dataset = {
+      organizer: account.address,
+      timestamp: new Date().toISOString(),
+      checkedIn,
+      objects: (owned.data || []).map((o) => o.data?.objectId || ""),
+    };
+    const blobId = await writeJsonToWalrus(dataset);
+    setResult(`attendance:${blobId}`);
   }
   return (
     <Container>
@@ -34,6 +74,38 @@ export function MyTickets() {
           <input placeholder="Key (hex)" value={keyHex} onChange={(e: ChangeEvent<HTMLInputElement>) => setKeyHex(e.target.value)} />
           <Button onClick={handleDecrypt}>Decrypt</Button>
           {result ? <Text>{result}</Text> : null}
+        </Flex>
+      </Box>
+      <Box mt="4" p="3" style={{ border: "1px solid var(--gray-a4)", borderRadius: 8 }}>
+        <Heading size="4">Networking Profile</Heading>
+        <Flex gap="2" direction="column" mt="2">
+          <input placeholder="Display name" value={displayName} onChange={(e: ChangeEvent<HTMLInputElement>) => setDisplayName(e.target.value)} />
+          <input placeholder="Bio" value={bio} onChange={(e: ChangeEvent<HTMLInputElement>) => setBio(e.target.value)} />
+          <input placeholder="Email" value={email} onChange={(e: ChangeEvent<HTMLInputElement>) => setEmail(e.target.value)} />
+          <input placeholder="Twitter" value={twitter} onChange={(e: ChangeEvent<HTMLInputElement>) => setTwitter(e.target.value)} />
+          <input placeholder="Website" value={website} onChange={(e: ChangeEvent<HTMLInputElement>) => setWebsite(e.target.value)} />
+          <input placeholder="Reputation URL" value={reputationUrl} onChange={(e: ChangeEvent<HTMLInputElement>) => setReputationUrl(e.target.value)} />
+          <Button onClick={handleSaveProfile} disabled={!account}>Save to Walrus</Button>
+          {profileBlobId ? <Text>Profile blob: {profileBlobId}</Text> : null}
+        </Flex>
+      </Box>
+      <Box mt="4" p="3" style={{ border: "1px solid var(--gray-a4)", borderRadius: 8 }}>
+        <Heading size="4">Badge and Check-in</Heading>
+        <Flex gap="2" direction="column" mt="2">
+          <input placeholder="Check-in token" value={checkInToken} onChange={(e: ChangeEvent<HTMLInputElement>) => setCheckInToken(e.target.value)} />
+          {qrData ? (
+            <img
+              alt="QR"
+              src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(qrData)}`}
+              style={{ width: 200, height: 200 }}
+            />
+          ) : null}
+          <Flex align="center" gap="2">
+            <input type="checkbox" checked={checkedIn} onChange={(e: ChangeEvent<HTMLInputElement>) => setCheckedIn(e.target.checked)} />
+            <span>Checked in</span>
+          </Flex>
+          <Button onClick={() => window.print()}>Print Badge</Button>
+          <Button onClick={handleExportAttendance} disabled={!account || ownedPending}>Export Attendance to Walrus</Button>
         </Flex>
       </Box>
     </Container>

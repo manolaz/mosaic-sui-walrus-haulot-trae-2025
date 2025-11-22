@@ -20,3 +20,4 @@ export function TicketCard({ ticket, onOpen }: Props) {
     </Box>
   );
 }
+
