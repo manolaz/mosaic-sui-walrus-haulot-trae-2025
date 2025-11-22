@@ -18,6 +18,8 @@ body,
 }
 
 body {
+  background-color: #0f1115;
+  color: #ffffff;
   font-family:
     "Fredoka",
     system-ui,
@@ -49,9 +51,9 @@ h6 {
 input {
   padding: 12px 14px;
   border-radius: 16px;
-  border: 1.5px solid var(--gray-a6);
-  background: var(--gray-a2);
-  color: inherit;
+  border: 1.5px solid #2a2f38;
+  background: #1a1d23;
+  color: #ffffff;
 }
 
 .gradient-text {

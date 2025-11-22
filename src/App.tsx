@@ -18,14 +18,14 @@ function App() {
         py="3"
         justify="between"
         style={{
-          backgroundImage: "var(--mosaic-rainbow)",
-          borderBottom: "1px solid var(--gray-a2)",
+          backgroundColor: "#14181f",
+          borderBottom: "1px solid #2a2f38",
           borderRadius: 20,
           boxShadow: "0 8px 20px rgba(0,0,0,0.25)",
         }}
       >
         <Box>
-          <Heading className="gradient-text">🌈🧩 Mosaic</Heading>
+          <Heading>🌈🧩 Mosaic</Heading>
           <Text size="2">✨ {MOSAIC_TAGLINE}</Text>
         </Box>
 
@@ -70,7 +70,7 @@ function App() {
           pt="2"
           px="4"
           style={{
-            backgroundImage: "var(--mosaic-rainbow)",
+            backgroundColor: "#0f1115",
             minHeight: 500,
             borderRadius: 24,
             boxShadow: "0 12px 32px rgba(0,0,0,0.3)",
