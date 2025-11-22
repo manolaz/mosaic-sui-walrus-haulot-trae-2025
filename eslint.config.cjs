@@ -6,7 +6,7 @@ const reactRefresh = require("eslint-plugin-react-refresh");
 
 module.exports = [
   {
-    ignores: ["node_modules/**", "dist/**", "build/**"],
+    ignores: ["node_modules/**", "dist/**", "build/**", "scripts/**"],
   },
   js.configs.recommended,
   {

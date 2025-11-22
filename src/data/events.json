@@ -5,7 +5,15 @@
     "categorySlug": "hacking",
     "organizerSlug": "mosaic-labs",
     "startsAt": "2025-12-02T18:00:00Z",
-    "endsAt": "2025-12-02T20:00:00Z"
+    "endsAt": "2025-12-02T20:00:00Z",
+    "tracks": ["ZK", "Tooling"],
+    "tiers": ["Free"],
+    "attendeeTypes": ["Developer", "Researcher"],
+    "imageUrl": "/images/zk-night.jpg",
+    "venue": "Mosaic HQ",
+    "city": "Singapore",
+    "capacity": 120,
+    "tags": ["zero-knowledge", "cryptography", "wasm"]
   },
   {
     "title": "Web3 BUIDL Workshop",
@@ -13,7 +21,15 @@
     "categorySlug": "hacking",
     "organizerSlug": "mosaic-labs",
     "startsAt": "2025-12-10T17:00:00Z",
-    "endsAt": "2025-12-10T19:00:00Z"
+    "endsAt": "2025-12-10T19:00:00Z",
+    "tracks": ["Sui", "Move"],
+    "tiers": ["Free"],
+    "attendeeTypes": ["Developer", "Student"],
+    "imageUrl": "/images/buidl-workshop.jpg",
+    "venue": "Innovation Lab",
+    "city": "Singapore",
+    "capacity": 80,
+    "tags": ["smart-contracts", "sdk", "wallets"]
   },
   {
     "title": "Climate Tech Summit",
@@ -21,7 +37,15 @@
     "categorySlug": "climate",
     "organizerSlug": "green-planet",
     "startsAt": "2025-12-05T09:00:00Z",
-    "endsAt": "2025-12-05T17:00:00Z"
+    "endsAt": "2025-12-05T17:00:00Z",
+    "tracks": ["MRV", "Carbon Markets"],
+    "tiers": ["Free", "VIP"],
+    "attendeeTypes": ["Founder", "Investor", "Researcher"],
+    "imageUrl": "/images/climate-summit.jpg",
+    "venue": "Green Center",
+    "city": "Tokyo",
+    "capacity": 300,
+    "tags": ["climate", "carbon", "policy"]
   },
   {
     "title": "Carbon Markets Roundtable",
@@ -29,7 +53,15 @@
     "categorySlug": "climate",
     "organizerSlug": "green-planet",
     "startsAt": "2025-12-12T15:00:00Z",
-    "endsAt": "2025-12-12T17:00:00Z"
+    "endsAt": "2025-12-12T17:00:00Z",
+    "tracks": ["Markets", "Standards"],
+    "tiers": ["Free"],
+    "attendeeTypes": ["Policy", "Developer"],
+    "imageUrl": "/images/carbon-roundtable.jpg",
+    "venue": "Green Center",
+    "city": "Tokyo",
+    "capacity": 60,
+    "tags": ["governance", "tokenization"]
   },
   {
     "title": "Edu Hack: Learning Analytics",
@@ -37,7 +69,15 @@
     "categorySlug": "education",
     "organizerSlug": "edu-guild",
     "startsAt": "2025-12-03T16:00:00Z",
-    "endsAt": "2025-12-03T18:00:00Z"
+    "endsAt": "2025-12-03T18:00:00Z",
+    "tracks": ["Analytics", "Credentials"],
+    "tiers": ["Free"],
+    "attendeeTypes": ["Educator", "Researcher", "Developer"],
+    "imageUrl": "/images/edu-hack.jpg",
+    "venue": "Open Campus",
+    "city": "Seoul",
+    "capacity": 150,
+    "tags": ["learning", "data", "open"]
   },
   {
     "title": "Open Education Meetup",
@@ -45,6 +85,14 @@
     "categorySlug": "education",
     "organizerSlug": "edu-guild",
     "startsAt": "2025-12-08T12:00:00Z",
-    "endsAt": "2025-12-08T14:00:00Z"
+    "endsAt": "2025-12-08T14:00:00Z",
+    "tracks": ["Open Resources"],
+    "tiers": ["Free"],
+    "attendeeTypes": ["Educator", "Student"],
+    "imageUrl": "/images/open-education.jpg",
+    "venue": "Open Campus",
+    "city": "Seoul",
+    "capacity": 100,
+    "tags": ["community", "portability"]
   }
 ]
