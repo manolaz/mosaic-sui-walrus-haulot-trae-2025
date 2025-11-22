@@ -53,3 +53,4 @@ Mosaic is a decentralized ticketing marketplace built on Sui with Walrus storage
 ## Tagline
 
 Every attendee is a piece of the picture.
+

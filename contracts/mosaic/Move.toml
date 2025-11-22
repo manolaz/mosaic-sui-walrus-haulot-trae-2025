@@ -7,3 +7,4 @@ Sui = { git = "https://github.com/MystenLabs/sui", subdir = "crates/sui-framewor
 
 [addresses]
 mosaic = "0x0"
+
