@@ -53,4 +53,5 @@ export type UserProfile = {
   twitter?: string;
   website?: string;
   reputationUrl?: string;
+  avatarBlobId?: string;
 };

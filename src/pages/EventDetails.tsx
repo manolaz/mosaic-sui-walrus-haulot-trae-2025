@@ -18,8 +18,13 @@ import {
   useSignAndExecuteTransaction,
 } from "@mysten/dapp-kit";
 import { Transaction } from "@mysten/sui/transactions";
-import { writeJsonToWalrus } from "../mosaic/walrus";
-import { useState } from "react";
+import {
+  writeJsonToWalrus,
+  writeFileToWalrus,
+  walrusBlobGatewayUrl,
+} from "../mosaic/walrus";
+import { saveBlobId, loadBlobId } from "../mosaic/storage";
+import { useState, useEffect } from "react";
 
 type RawFields = {
   organizer: string;
@@ -177,6 +182,10 @@ export function EventDetails() {
   const [txDigest, setTxDigest] = useState<string | null>(null);
   const [blobId, setBlobId] = useState<string | null>(null);
   const imageUrl = isDemo ? (seed as any)?.imageUrl : undefined;
+  const [eventImageUrl, setEventImageUrl] = useState<string>("");
+  const [_eventImageBlobId, setEventImageBlobId] = useState<string>("");
+  const [organizerImageUrl, setOrganizerImageUrl] = useState<string>("");
+  const [_organizerBlobId, setOrganizerBlobId] = useState<string>("");
   const venue = isDemo ? (seed as any)?.venue : undefined;
   const city = isDemo ? (seed as any)?.city : undefined;
   const capacity = isDemo ? (seed as any)?.capacity : undefined;
@@ -190,6 +199,7 @@ export function EventDetails() {
   const organizerInfo = isDemo
     ? (organizers as any[]).find((o) => o.slug === (seed as any)?.organizerSlug)
     : undefined;
+  const organizerKey = isDemo ? (organizerInfo as any)?.slug : organizer || "";
   const goalText = isDemo
     ? `Connect developers in ${city || "the city"} with hands-on sessions and open collaboration across ${tracks.join(", ") || "tracks"}.`
     : undefined;
@@ -262,6 +272,44 @@ export function EventDetails() {
     }
   }
 
+  useEffect(() => {
+    if (eventId && !isDemo) {
+      const existing = loadBlobId("event", eventId);
+      if (existing) {
+        setEventImageBlobId(existing);
+        setEventImageUrl(walrusBlobGatewayUrl(existing, "testnet"));
+      }
+    }
+  }, [eventId, isDemo]);
+
+  useEffect(() => {
+    if (organizerKey) {
+      const existing = loadBlobId("organizer", organizerKey);
+      if (existing) {
+        setOrganizerBlobId(existing);
+        setOrganizerImageUrl(walrusBlobGatewayUrl(existing, "testnet"));
+      }
+    }
+  }, [organizerKey]);
+
+  async function handleEventImageSelected(file: File | null) {
+    if (!file || !eventId) return;
+    const bId = await writeFileToWalrus(file, "testnet");
+    setEventImageBlobId(bId);
+    const url = walrusBlobGatewayUrl(bId, "testnet");
+    setEventImageUrl(url);
+    saveBlobId("event", eventId, bId);
+  }
+
+  async function handleOrganizerImageSelected(file: File | null) {
+    if (!file || !organizerKey) return;
+    const bId = await writeFileToWalrus(file, "testnet");
+    setOrganizerBlobId(bId);
+    const url = walrusBlobGatewayUrl(bId, "testnet");
+    setOrganizerImageUrl(url);
+    saveBlobId("organizer", organizerKey, bId);
+  }
+
   return (
     <Container>
       <Flex align="center" justify="between" mb="3">
@@ -273,7 +321,7 @@ export function EventDetails() {
       {isPending ? <Text>Loading...</Text> : null}
       <Flex gap="4">
         <Box style={{ flex: 2 }}>
-          {imageUrl ? (
+          {isDemo ? (
             <Box
               p="0"
               style={{
@@ -283,6 +331,18 @@ export function EventDetails() {
               }}
             >
               <img src={imageUrl} alt={title || "Event image"} />
+            </Box>
+          ) : null}
+          {!isDemo && eventImageUrl ? (
+            <Box
+              p="0"
+              style={{
+                overflow: "hidden",
+                borderRadius: 20,
+                border: "1px solid var(--gray-a4)",
+              }}
+            >
+              <img src={eventImageUrl} alt={title || "Event image"} />
             </Box>
           ) : null}
           <Box
@@ -321,6 +381,17 @@ export function EventDetails() {
           >
             <Heading size="4">About Event</Heading>
             <Text mt="2">{description}</Text>
+            {!isDemo ? (
+              <Box mt="3">
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={(e) =>
+                    handleEventImageSelected(e.target.files?.[0] || null)
+                  }
+                />
+              </Box>
+            ) : null}
           </Box>
           {goalText ? (
             <Box
@@ -339,6 +410,19 @@ export function EventDetails() {
               style={{ border: "1px solid var(--gray-a4)", borderRadius: 16 }}
             >
               <Heading size="4">Organizer</Heading>
+              {organizerImageUrl ? (
+                <Box
+                  mt="2"
+                  p="0"
+                  style={{
+                    overflow: "hidden",
+                    borderRadius: 16,
+                    border: "1px solid var(--gray-a4)",
+                  }}
+                >
+                  <img src={organizerImageUrl} alt="Organizer" />
+                </Box>
+              ) : null}
               <Text mt="2">{organizerInfo.name}</Text>
               {organizerInfo.website ? (
                 <Text mt="1" size="2">
@@ -350,6 +434,15 @@ export function EventDetails() {
                   {organizerInfo.twitter}
                 </Text>
               ) : null}
+              <Box mt="3">
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={(e) =>
+                    handleOrganizerImageSelected(e.target.files?.[0] || null)
+                  }
+                />
+              </Box>
             </Box>
           ) : null}
           {isSpecialTraeEvent ? (
