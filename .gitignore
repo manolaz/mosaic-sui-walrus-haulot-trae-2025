@@ -7,3 +7,5 @@ npm-debug.log
 /contracts/mosaic/build
 /node_modules/.vite
 /node_modules/.bin
+/dist
+/node_modules
