@@ -9,3 +9,6 @@ npm-debug.log
 /node_modules/.bin
 /dist
 /node_modules
+*.js
+/node_modules/.vite
+/node_modules/.vite/deps
