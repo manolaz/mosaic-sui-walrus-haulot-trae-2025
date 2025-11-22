@@ -7,15 +7,15 @@ export function WalletStatus() {
 
   return (
     <Container my="2">
-      <Heading mb="2">Wallet Status</Heading>
+      <Heading mb="2">👛 Wallet Status</Heading>
 
       {account ? (
         <Flex direction="column">
-          <Text>Wallet connected</Text>
+          <Text>✅ Wallet connected</Text>
           <Text>Address: {account.address}</Text>
         </Flex>
       ) : (
-        <Text>Wallet not connected</Text>
+        <Text>❌ Wallet not connected</Text>
       )}
       <OwnedObjects />
     </Container>

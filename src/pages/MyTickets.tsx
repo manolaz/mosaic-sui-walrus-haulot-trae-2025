@@ -21,17 +21,23 @@ export function MyTickets() {
   const [profileBlobId, setProfileBlobId] = useState<string>("");
   const [checkInToken, setCheckInToken] = useState<string>(crypto.randomUUID());
   const [checkedIn, setCheckedIn] = useState<boolean>(false);
-  const qrData = account ? `mosaic:ticket:${account.address}:${checkInToken}` : "";
+  const qrData = account
+    ? `mosaic:ticket:${account.address}:${checkInToken}`
+    : "";
   const { data: owned, isPending: ownedPending } = useSuiClientQuery(
     "getOwnedObjects",
     { owner: account?.address as string },
-    { enabled: !!account }
+    { enabled: !!account },
   );
 
   async function handleDecrypt() {
     try {
       const key = await importKeyHex(keyHex);
-      const payload = await decryptJson<EncryptedTicketPayload>(key, cipher, iv);
+      const payload = await decryptJson<EncryptedTicketPayload>(
+        key,
+        cipher,
+        iv,
+      );
       setResult(JSON.stringify(payload));
     } catch {
       setResult("Decryption failed");
@@ -47,7 +53,10 @@ export function MyTickets() {
       website,
       reputationUrl,
     };
-    const blobId = await writeJsonToWalrus({ wallet: account.address, profile });
+    const blobId = await writeJsonToWalrus({
+      wallet: account.address,
+      profile,
+    });
     setProfileBlobId(blobId);
   }
   async function handleExportAttendance() {
@@ -63,36 +72,110 @@ export function MyTickets() {
   }
   return (
     <Container>
-      <Heading mb="3">My Tickets</Heading>
-      {!account ? <Text>Connect your wallet</Text> : null}
+      <Heading mb="3">🎫 My Tickets</Heading>
+      {!account ? <Text>🔌 Connect your wallet</Text> : null}
       <OwnedObjects />
-      <Box mt="4" p="3" style={{ border: "1px solid var(--gray-a4)", borderRadius: 8 }}>
-        <Heading size="4">Open Encrypted Ticket</Heading>
+      <Box
+        mt="4"
+        p="3"
+        style={{ border: "1px solid var(--gray-a4)", borderRadius: 16 }}
+      >
+        <Heading size="4">🔐 Open Encrypted Ticket</Heading>
         <Flex gap="2" direction="column" mt="2">
-          <input placeholder="Ciphertext (hex)" value={cipher} onChange={(e: ChangeEvent<HTMLInputElement>) => setCipher(e.target.value)} />
-          <input placeholder="IV (hex)" value={iv} onChange={(e: ChangeEvent<HTMLInputElement>) => setIv(e.target.value)} />
-          <input placeholder="Key (hex)" value={keyHex} onChange={(e: ChangeEvent<HTMLInputElement>) => setKeyHex(e.target.value)} />
+          <input
+            placeholder="Ciphertext (hex)"
+            value={cipher}
+            onChange={(e: ChangeEvent<HTMLInputElement>) =>
+              setCipher(e.target.value)
+            }
+          />
+          <input
+            placeholder="IV (hex)"
+            value={iv}
+            onChange={(e: ChangeEvent<HTMLInputElement>) =>
+              setIv(e.target.value)
+            }
+          />
+          <input
+            placeholder="Key (hex)"
+            value={keyHex}
+            onChange={(e: ChangeEvent<HTMLInputElement>) =>
+              setKeyHex(e.target.value)
+            }
+          />
           <Button onClick={handleDecrypt}>Decrypt</Button>
           {result ? <Text>{result}</Text> : null}
         </Flex>
       </Box>
-      <Box mt="4" p="3" style={{ border: "1px solid var(--gray-a4)", borderRadius: 8 }}>
-        <Heading size="4">Networking Profile</Heading>
+      <Box
+        mt="4"
+        p="3"
+        style={{ border: "1px solid var(--gray-a4)", borderRadius: 16 }}
+      >
+        <Heading size="4">👤 Networking Profile</Heading>
         <Flex gap="2" direction="column" mt="2">
-          <input placeholder="Display name" value={displayName} onChange={(e: ChangeEvent<HTMLInputElement>) => setDisplayName(e.target.value)} />
-          <input placeholder="Bio" value={bio} onChange={(e: ChangeEvent<HTMLInputElement>) => setBio(e.target.value)} />
-          <input placeholder="Email" value={email} onChange={(e: ChangeEvent<HTMLInputElement>) => setEmail(e.target.value)} />
-          <input placeholder="Twitter" value={twitter} onChange={(e: ChangeEvent<HTMLInputElement>) => setTwitter(e.target.value)} />
-          <input placeholder="Website" value={website} onChange={(e: ChangeEvent<HTMLInputElement>) => setWebsite(e.target.value)} />
-          <input placeholder="Reputation URL" value={reputationUrl} onChange={(e: ChangeEvent<HTMLInputElement>) => setReputationUrl(e.target.value)} />
-          <Button onClick={handleSaveProfile} disabled={!account}>Save to Walrus</Button>
+          <input
+            placeholder="Display name"
+            value={displayName}
+            onChange={(e: ChangeEvent<HTMLInputElement>) =>
+              setDisplayName(e.target.value)
+            }
+          />
+          <input
+            placeholder="Bio"
+            value={bio}
+            onChange={(e: ChangeEvent<HTMLInputElement>) =>
+              setBio(e.target.value)
+            }
+          />
+          <input
+            placeholder="Email"
+            value={email}
+            onChange={(e: ChangeEvent<HTMLInputElement>) =>
+              setEmail(e.target.value)
+            }
+          />
+          <input
+            placeholder="Twitter"
+            value={twitter}
+            onChange={(e: ChangeEvent<HTMLInputElement>) =>
+              setTwitter(e.target.value)
+            }
+          />
+          <input
+            placeholder="Website"
+            value={website}
+            onChange={(e: ChangeEvent<HTMLInputElement>) =>
+              setWebsite(e.target.value)
+            }
+          />
+          <input
+            placeholder="Reputation URL"
+            value={reputationUrl}
+            onChange={(e: ChangeEvent<HTMLInputElement>) =>
+              setReputationUrl(e.target.value)
+            }
+          />
+          <Button onClick={handleSaveProfile} disabled={!account}>
+            Save to Walrus
+          </Button>
           {profileBlobId ? <Text>Profile blob: {profileBlobId}</Text> : null}
         </Flex>
       </Box>
-      <Box mt="4" p="3" style={{ border: "1px solid var(--gray-a4)", borderRadius: 8 }}>
-        <Heading size="4">Badge and Check-in</Heading>
+      <Box
+        mt="4"
+        p="3"
+        style={{ border: "1px solid var(--gray-a4)", borderRadius: 16 }}
+      >
+        <Heading size="4">🏷️ Badge and Check-in</Heading>
         <Flex gap="2" direction="column" mt="2">
-          <input placeholder="Check-in token" value={checkInToken} onChange={(e: ChangeEvent<HTMLInputElement>) => setCheckInToken(e.target.value)} />
+          <input
+            placeholder="Check-in token"
+            value={checkInToken}
+            onChange={(e: ChangeEvent<HTMLInputElement>) =>
+              setCheckInToken(e.target.value)
+            }
+          />
           {qrData ? (
             <img
               alt="QR"
@@ -101,11 +184,22 @@ export function MyTickets() {
             />
           ) : null}
           <Flex align="center" gap="2">
-            <input type="checkbox" checked={checkedIn} onChange={(e: ChangeEvent<HTMLInputElement>) => setCheckedIn(e.target.checked)} />
+            <input
+              type="checkbox"
+              checked={checkedIn}
+              onChange={(e: ChangeEvent<HTMLInputElement>) =>
+                setCheckedIn(e.target.checked)
+              }
+            />
             <span>Checked in</span>
           </Flex>
           <Button onClick={() => window.print()}>Print Badge</Button>
-          <Button onClick={handleExportAttendance} disabled={!account || ownedPending}>Export Attendance to Walrus</Button>
+          <Button
+            onClick={handleExportAttendance}
+            disabled={!account || ownedPending}
+          >
+            Export Attendance to Walrus
+          </Button>
         </Flex>
       </Box>
     </Container>

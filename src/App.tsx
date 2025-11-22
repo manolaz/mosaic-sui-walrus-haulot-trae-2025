@@ -15,47 +15,50 @@ function App() {
       <Flex
         position="sticky"
         px="4"
-        py="2"
+        py="3"
         justify="between"
         style={{
+          backgroundImage: "var(--mosaic-rainbow)",
           borderBottom: "1px solid var(--gray-a2)",
+          borderRadius: 20,
+          boxShadow: "0 8px 20px rgba(0,0,0,0.25)",
         }}
       >
         <Box>
-          <Heading>Mosaic</Heading>
-          <Text size="2">{MOSAIC_TAGLINE}</Text>
+          <Heading className="gradient-text">🌈🧩 Mosaic</Heading>
+          <Text size="2">✨ {MOSAIC_TAGLINE}</Text>
         </Box>
 
         <Flex align="center" gap="3">
           <Link to="/">
             <Button variant={location.pathname === "/" ? "solid" : "soft"}>
-              Marketplace
+              🛍️ Marketplace
             </Button>
           </Link>
           <Link to="/events">
             <Button
               variant={location.pathname === "/events" ? "solid" : "soft"}
             >
-              Events
+              🎉 Events
             </Button>
           </Link>
           <Link to="/calendars">
             <Button
               variant={location.pathname === "/calendars" ? "solid" : "soft"}
             >
-              Calendars
+              🗓️ Calendars
             </Button>
           </Link>
           <Link to="/create">
             <Button
               variant={location.pathname === "/create" ? "solid" : "soft"}
             >
-              Create Event
+              ✏️ Create Event
             </Button>
           </Link>
           <Link to="/mine">
             <Button variant={location.pathname === "/mine" ? "solid" : "soft"}>
-              My Tickets
+              🎫 My Tickets
             </Button>
           </Link>
           <ConnectButton />
@@ -66,7 +69,12 @@ function App() {
           mt="5"
           pt="2"
           px="4"
-          style={{ background: "var(--gray-a2)", minHeight: 500 }}
+          style={{
+            backgroundImage: "var(--mosaic-rainbow)",
+            minHeight: 500,
+            borderRadius: 24,
+            boxShadow: "0 12px 32px rgba(0,0,0,0.3)",
+          }}
         >
           <Routes>
             <Route path="/" element={<Marketplace />} />

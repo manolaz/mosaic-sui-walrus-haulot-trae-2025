@@ -27,16 +27,16 @@ export function CreateEvent() {
 
   return (
     <Container>
-      <Heading mb="3">Create Event</Heading>
+      <Heading mb="3">✏️ Create Event</Heading>
       <TicketMintForm onCreate={handleCreate} />
       <Flex direction="column" mt="4" gap="2">
         {events.length === 0 ? (
           <Text>No events created</Text>
         ) : (
-          <Heading size="4">Recent</Heading>
+          <Heading size="4">🆕 Recent</Heading>
         )}
         {events.map((e) => (
-          <Box key={e.id} p="3" style={{ border: "1px solid var(--gray-a4)", borderRadius: 8 }}>
+          <Box key={e.id} p="3" style={{ border: "1px solid var(--gray-a4)", borderRadius: 16 }}>
             <Flex justify="between">
               <Heading size="3">{e.title}</Heading>
               <Text>{e.id.slice(0, 8)}</Text>

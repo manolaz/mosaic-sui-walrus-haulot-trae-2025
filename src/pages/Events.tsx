@@ -97,14 +97,14 @@ export function Events() {
 
   return (
     <Container>
-      <Heading mb="3">Events</Heading>
+      <Heading mb="3">🎉 Events</Heading>
       {!packageId ? <Text>Missing package ID</Text> : null}
       {txsPending || objsPending ? <Text>Loading...</Text> : null}
       {!txsPending && events.length === 0 ? <Text>No events found</Text> : null}
-      {todayUpcoming.length > 0 ? <Heading size="4">Today</Heading> : null}
+      {todayUpcoming.length > 0 ? <Heading size="4">☀️ Today</Heading> : null}
       <Flex direction="column" gap="2" mt="2">
         {todayUpcoming.map((e) => (
-          <Box key={e.id} p="3" style={{ border: "1px solid var(--gray-a4)", borderRadius: 8 }}>
+          <Box key={e.id} p="3" style={{ border: "1px solid var(--gray-a4)", borderRadius: 16 }}>
             <Flex justify="between" align="center">
               <Heading size="3">{e.title || e.id.slice(0, 8)}</Heading>
               <Text>{formatTime(e.startsMs)}</Text>
@@ -114,10 +114,10 @@ export function Events() {
           </Box>
         ))}
       </Flex>
-      {future.length > 0 ? <Heading mt="4" size="4">Upcoming</Heading> : null}
+      {future.length > 0 ? <Heading mt="4" size="4">🌈 Upcoming</Heading> : null}
       <Flex direction="column" gap="2" mt="2">
         {future.map((e) => (
-          <Box key={e.id} p="3" style={{ border: "1px solid var(--gray-a4)", borderRadius: 8 }}>
+          <Box key={e.id} p="3" style={{ border: "1px solid var(--gray-a4)", borderRadius: 16 }}>
             <Flex justify="between" align="center">
               <Heading size="3">{e.title || e.id.slice(0, 8)}</Heading>
               <Text>{formatTime(e.startsMs)}</Text>
@@ -130,4 +130,3 @@ export function Events() {
     </Container>
   );
 }
-

@@ -86,17 +86,17 @@ export function Calendars() {
 
   return (
     <Container>
-      <Heading mb="3">Calendars</Heading>
+      <Heading mb="3">🗓️ Calendars</Heading>
       {!packageId ? <Text>Missing package ID</Text> : null}
       {txsPending || objPending ? <Text>Loading...</Text> : null}
       {organizers.length === 0 && !txsPending && !objPending ? <Text>No organizers found</Text> : null}
       <Flex direction="column" gap="3">
         {organizers.map((org) => (
-          <Box key={org} p="3" style={{ border: "1px solid var(--gray-a4)", borderRadius: 8 }}>
-            <Heading size="4">Organizer {org.slice(0, 8)}</Heading>
+          <Box key={org} p="3" style={{ border: "1px solid var(--gray-a4)", borderRadius: 16 }}>
+            <Heading size="4">👤 Organizer {org.slice(0, 8)}</Heading>
             <Flex direction="column" gap="2" mt="2">
               {grouped[org].map((e) => (
-                <Box key={e.id} p="2" style={{ border: "1px solid var(--gray-a4)", borderRadius: 6 }}>
+                <Box key={e.id} p="2" style={{ border: "1px solid var(--gray-a4)", borderRadius: 12 }}>
                   <Flex justify="between" align="center">
                     <Text>{e.title || e.id.slice(0, 8)}</Text>
                     <Text>{formatDate(e.startsMs)}</Text>
@@ -111,4 +111,3 @@ export function Calendars() {
     </Container>
   );
 }
-

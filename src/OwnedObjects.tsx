@@ -28,13 +28,13 @@ export function OwnedObjects() {
   return (
     <Flex direction="column" my="2">
       {data.data.length === 0 ? (
-        <Text>No objects owned by the connected wallet</Text>
+        <Text>🙅 No objects owned by the connected wallet</Text>
       ) : (
-        <Heading size="4">Objects owned by the connected wallet</Heading>
+        <Heading size="4">📦 Objects owned by the connected wallet</Heading>
       )}
       {data.data.map((object) => (
         <Flex key={object.data?.objectId}>
-          <Text>Object ID: {object.data?.objectId}</Text>
+          <Text>🆔 Object ID: {object.data?.objectId}</Text>
         </Flex>
       ))}
     </Flex>

@@ -36,17 +36,24 @@ export function Marketplace() {
   }
   return (
     <Container>
-      <Heading mb="3">Marketplace</Heading>
+      <Heading mb="3">🛍️ Marketplace</Heading>
+      <Flex justify="center" my="4">
+        <div className="logo-ring">
+          <div className="logo-inner">
+            <img className="logo-img" src="/images/MOSAIC.png" alt="Mosaic" />
+          </div>
+        </div>
+      </Flex>
       <Flex direction="column" gap="2">
-        <Text>Discover events and tickets</Text>
-        <Heading size="4">Integrations</Heading>
+        <Text>🔎 Discover events and tickets</Text>
+        <Heading size="4">🔗 Integrations</Heading>
         <Text>Use attendance data for sponsor activations and loyalty programs.</Text>
         <Flex gap="2" align="center">
-          <Button onClick={handleSponsorActivation} disabled={!account || isPending}>Create Sponsor Activation Blob</Button>
+          <Button onClick={handleSponsorActivation} disabled={!account || isPending}>🧩 Create Sponsor Activation Blob</Button>
           {sponsorBlob ? <Text>Blob: {sponsorBlob}</Text> : null}
         </Flex>
         <Flex gap="2" align="center">
-          <Button onClick={handleLoyaltyDataset} disabled={!account || isPending}>Create Loyalty Dataset Blob</Button>
+          <Button onClick={handleLoyaltyDataset} disabled={!account || isPending}>💖 Create Loyalty Dataset Blob</Button>
           {loyaltyBlob ? <Text>Blob: {loyaltyBlob}</Text> : null}
         </Flex>
       </Flex>
