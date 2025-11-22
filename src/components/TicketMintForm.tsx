@@ -42,7 +42,7 @@ export function TicketMintForm({ onCreate }: Props) {
       const titleBytes = Array.from(enc.encode(title));
       const descriptionBytes = Array.from(enc.encode(description));
       const walrusBlobId = [] as number[];
-      const authenticity = [] as number[];
+      const authenticity = Array.from(new TextEncoder().encode(account.address));
 
       const tx = new Transaction();
       const eventObj = tx.moveCall({

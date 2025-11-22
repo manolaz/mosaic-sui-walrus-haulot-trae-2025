@@ -245,7 +245,7 @@ export function EventDetails() {
 
       const enc = new TextEncoder();
       const blobBytes = Array.from(enc.encode(walrusBlobId));
-      const authenticity = [] as number[];
+      const authenticity = Array.from(enc.encode(account.address));
 
       const tx = new Transaction();
       const eventRef = isDemo

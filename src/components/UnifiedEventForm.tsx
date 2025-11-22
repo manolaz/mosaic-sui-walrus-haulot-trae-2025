@@ -101,12 +101,13 @@ export function UnifiedEventForm({
       });
 
       if (mintTicket) {
+        const authenticity = Array.from(new TextEncoder().encode(account.address));
         const mintedTicket = tx.moveCall({
           target: `${packageId}::ticket::mint`,
           arguments: [
             eventRef,
             tx.pure("vector<u8>", [] as number[]),
-            tx.pure("vector<u8>", [] as number[]),
+            tx.pure("vector<u8>", authenticity),
             tx.pure.address(account.address),
           ],
         });
