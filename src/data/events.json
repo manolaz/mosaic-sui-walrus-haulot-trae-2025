@@ -1,0 +1,50 @@
+[
+  {
+    "title": "Hack Night: Zero-Knowledge Demos",
+    "description": "Live demos of ZK tooling and prover optimization.",
+    "categorySlug": "hacking",
+    "organizerSlug": "mosaic-labs",
+    "startsAt": "2025-12-02T18:00:00Z",
+    "endsAt": "2025-12-02T20:00:00Z"
+  },
+  {
+    "title": "Web3 BUIDL Workshop",
+    "description": "Hands-on building with Sui and Move smart contracts.",
+    "categorySlug": "hacking",
+    "organizerSlug": "mosaic-labs",
+    "startsAt": "2025-12-10T17:00:00Z",
+    "endsAt": "2025-12-10T19:00:00Z"
+  },
+  {
+    "title": "Climate Tech Summit",
+    "description": "Scaling climate solutions across measurement, reporting, and verification.",
+    "categorySlug": "climate",
+    "organizerSlug": "green-planet",
+    "startsAt": "2025-12-05T09:00:00Z",
+    "endsAt": "2025-12-05T17:00:00Z"
+  },
+  {
+    "title": "Carbon Markets Roundtable",
+    "description": "Discussion on tokenized carbon credits and integrity standards.",
+    "categorySlug": "climate",
+    "organizerSlug": "green-planet",
+    "startsAt": "2025-12-12T15:00:00Z",
+    "endsAt": "2025-12-12T17:00:00Z"
+  },
+  {
+    "title": "Edu Hack: Learning Analytics",
+    "description": "Exploring data-driven pedagogy and open learning credentials.",
+    "categorySlug": "education",
+    "organizerSlug": "edu-guild",
+    "startsAt": "2025-12-03T16:00:00Z",
+    "endsAt": "2025-12-03T18:00:00Z"
+  },
+  {
+    "title": "Open Education Meetup",
+    "description": "Community meetup on open resources and credential portability.",
+    "categorySlug": "education",
+    "organizerSlug": "edu-guild",
+    "startsAt": "2025-12-08T12:00:00Z",
+    "endsAt": "2025-12-08T14:00:00Z"
+  }
+]

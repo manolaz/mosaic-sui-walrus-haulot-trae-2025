@@ -1,0 +1,20 @@
+[
+  {
+    "slug": "mosaic-labs",
+    "name": "Mosaic Labs",
+    "website": "https://mosaic.example",
+    "twitter": "@mosaic"
+  },
+  {
+    "slug": "green-planet",
+    "name": "Green Planet",
+    "website": "https://green.example",
+    "twitter": "@greenplanet"
+  },
+  {
+    "slug": "edu-guild",
+    "name": "Edu Guild",
+    "website": "https://edu.example",
+    "twitter": "@eduguild"
+  }
+]
