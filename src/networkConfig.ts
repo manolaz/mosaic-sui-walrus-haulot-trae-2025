@@ -11,7 +11,7 @@ const { networkConfig, useNetworkVariable, useNetworkVariables } = createNetwork
   testnet: {
     url: getFullnodeUrl("testnet"),
     variables: {
-      MOSAIC_PACKAGE_ID: "0x4a36d9b8463e10c943263c2ac5a01d1a1ef6a1a7792f63d122e7f082b72e5dfe",
+      MOSAIC_PACKAGE_ID: "0xae764475e3f1805a5a989530cbd72af5b24a6ca0148e49a99e3fbcaa0f4ca64d",
     },
   },
   mainnet: {
