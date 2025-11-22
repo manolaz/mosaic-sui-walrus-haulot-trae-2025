@@ -5,7 +5,7 @@ module mosaic::ticket {
     use mosaic::event;
 
     struct Ticket has key, store {
-        id: object::ID,
+        id: object::UID,
         event_id: object::ID,
         organizer: address,
         holder: address,
@@ -13,7 +13,7 @@ module mosaic::ticket {
         authenticity: vector<u8>,
     }
 
-    public entry fun mint(
+    public fun mint(
         e: &event::Event,
         walrus_blob_id: vector<u8>,
         authenticity: vector<u8>,
@@ -21,7 +21,9 @@ module mosaic::ticket {
         ctx: &mut tx_context::TxContext
     ): Ticket {
         let id = object::new(ctx);
-        let t = Ticket { id, event_id: e.id, organizer: e.organizer, holder: to, walrus_blob_id, authenticity };
+        let event_id = event::id(e);
+        let organizer = event::organizer(e);
+        let t = Ticket { id, event_id, organizer, holder: to, walrus_blob_id, authenticity };
         t
     }
 
