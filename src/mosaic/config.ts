@@ -1,9 +1,8 @@
-import { useNetworkVariables } from "../networkConfig";
 import type { SealKeyServer } from "./types";
 
 export function useMosaicConfig() {
-  const vars = useNetworkVariables() as Record<string, string>;
-  const mosaicPackageId = vars["MOSAIC_PACKAGE_ID"] ?? "";
+  const mosaicPackageId =
+    "0xf6012255c72bec20d66d825398a49bc6cf64391e80573c52073ee809880c6fb0";
   const sealServers: SealKeyServer[] = [
     {
       objectId:
