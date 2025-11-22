@@ -27,6 +27,7 @@ import { getWalrusKeypair } from "../mosaic/walrus-config";
 import { saveBlobId, loadBlobId } from "../mosaic/storage";
 import { useState, useEffect } from "react";
 import { formatRangeMs, formatTimeMs, parseLocalDateTime } from "../utils/date";
+import { decodeVecU8 } from "../utils/sui";
 
 type RawFields = {
   organizer: string;
@@ -35,19 +36,6 @@ type RawFields = {
   starts_at_ms: string | number;
   ends_at_ms: string | number;
 };
-
-function decodeVecU8(v: any): string {
-  if (typeof v === "string") return v;
-  if (Array.isArray(v)) {
-    try {
-      const bytes = new Uint8Array(v as number[]);
-      return new TextDecoder().decode(bytes);
-    } catch {
-      return "";
-    }
-  }
-  return "";
-}
 
 function formatRange(a: number, b: number): string {
   return formatRangeMs(a, b);
@@ -151,7 +139,11 @@ export function EventDetails() {
         ?.name as string | undefined)
     : undefined;
 
-  const { data: object, isPending } = useSuiClientQuery(
+  const {
+    data: object,
+    isPending,
+    error,
+  } = useSuiClientQuery(
     "getObject",
     {
       id: isDemo ? "0x0" : (eventId as string),
@@ -337,6 +329,7 @@ export function EventDetails() {
           <Text>Back</Text>
         </Link>
       </Flex>
+      {error ? <Text color="red">Error loading event</Text> : null}
       {isPending ? <Text>Loading...</Text> : null}
       <Flex gap="4">
         <Box style={{ flex: 2 }}>
@@ -405,6 +398,7 @@ export function EventDetails() {
                 <input
                   type="file"
                   accept="image/*"
+                  aria-label="Upload event image"
                   onChange={(e) =>
                     handleEventImageSelected(e.target.files?.[0] || null)
                   }
@@ -457,6 +451,7 @@ export function EventDetails() {
                 <input
                   type="file"
                   accept="image/*"
+                  aria-label="Upload organizer image"
                   onChange={(e) =>
                     handleOrganizerImageSelected(e.target.files?.[0] || null)
                   }
@@ -577,37 +572,6 @@ export function EventDetails() {
             </Box>
           ) : null}
         </Box>
-      </Flex>
-      <Heading mt="4" size="4">
-        🕰️ Agenda
-      </Heading>
-      <Flex direction="column" gap="3" mt="2">
-        {agenda.map((section, i) => (
-          <Box
-            key={`${section.label}-${i}`}
-            p="3"
-            style={{ border: "1px solid var(--gray-a4)", borderRadius: 16 }}
-          >
-            <Heading size="3">{section.label}</Heading>
-            <Flex direction="column" gap="1" mt="2">
-              {section.items.map((it, j) => (
-                <Flex
-                  key={`${i}-${j}`}
-                  justify="between"
-                  align="center"
-                  style={{
-                    padding: 8,
-                    border: "1px solid var(--gray-a4)",
-                    borderRadius: 12,
-                  }}
-                >
-                  <Text>{hourLabel(it.time)}</Text>
-                  <Text>{it.title}</Text>
-                </Flex>
-              ))}
-            </Flex>
-          </Box>
-        ))}
       </Flex>
     </Container>
   );

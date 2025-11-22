@@ -120,9 +120,14 @@ export function UnifiedEventForm({
         let imageBlobId = "";
         let imageUrl = "";
         if (nftImageFile) {
-          const kp = getWalrusKeypair();
-          imageBlobId = await writeFileToWalrus(nftImageFile, kp);
-          imageUrl = walrusBlobGatewayUrl(imageBlobId, "testnet");
+          try {
+            const kp = getWalrusKeypair();
+            imageBlobId = await writeFileToWalrus(nftImageFile, kp);
+            imageUrl = walrusBlobGatewayUrl(imageBlobId, "testnet");
+          } catch {
+            imageBlobId = "";
+            imageUrl = "";
+          }
         }
         const meta = {
           title,
@@ -150,8 +155,13 @@ export function UnifiedEventForm({
             { trait_type: "Location", value: location },
           ],
         };
-        const kp = getWalrusKeypair();
-        const blobId = await writeJsonToWalrus(meta, kp);
+        let blobId = "";
+        try {
+          const kp = getWalrusKeypair();
+          blobId = await writeJsonToWalrus(meta, kp);
+        } catch {
+          blobId = "";
+        }
         setMetadataBlobId(blobId);
         const [nft] = tx.moveCall({
           target: `${packageId}::event::create_event_nft`,
@@ -208,18 +218,21 @@ export function UnifiedEventForm({
             placeholder="Title"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
+            aria-label="Event title"
           />
           <TextArea
             rows={3}
             placeholder="Description"
             value={description}
             onChange={(e) => setDescription(e.target.value)}
+            aria-label="Event description"
           />
           <Flex gap="3">
             <TextField.Root
               placeholder="Location"
               value={location}
               onChange={(e) => setLocation(e.target.value)}
+              aria-label="Event location"
             />
             <Select.Root value={category} onValueChange={(v) => setCategory(v)}>
               <Select.Trigger placeholder="Category" />
@@ -236,6 +249,7 @@ export function UnifiedEventForm({
             placeholder="Tags (comma separated)"
             value={tags}
             onChange={(e) => setTags(e.target.value)}
+            aria-label="Event tags"
           />
           <Flex gap="3">
             <TextField.Root
@@ -244,6 +258,7 @@ export function UnifiedEventForm({
               value={startsAt}
               min={new Date().toISOString().slice(0, 16)}
               onChange={(e) => setStartsAt(e.target.value)}
+              aria-label="Start date and time"
             />
             <TextField.Root
               type="datetime-local"
@@ -251,6 +266,7 @@ export function UnifiedEventForm({
               value={endsAt}
               min={startsAt || new Date().toISOString().slice(0, 16)}
               onChange={(e) => setEndsAt(e.target.value)}
+              aria-label="End date and time"
             />
           </Flex>
           <Flex align="center" gap="2">
@@ -266,16 +282,19 @@ export function UnifiedEventForm({
                 placeholder="Event tracks (comma-separated)"
                 value={tracksCsv}
                 onChange={(e) => setTracksCsv(e.target.value)}
+                aria-label="Event tracks"
               />
               <TextField.Root
                 placeholder="Event tiers (comma-separated)"
                 value={tiersCsv}
                 onChange={(e) => setTiersCsv(e.target.value)}
+                aria-label="Event tiers"
               />
               <TextField.Root
                 placeholder="Attendee types (comma-separated)"
                 value={attendeeTypesCsv}
                 onChange={(e) => setAttendeeTypesCsv(e.target.value)}
+                aria-label="Attendee types"
               />
             </Flex>
           ) : null}
@@ -296,16 +315,19 @@ export function UnifiedEventForm({
                   placeholder="Ticket tier"
                   value={ticketTier}
                   onChange={(e) => setTicketTier(e.target.value)}
+                  aria-label="Ticket tier"
                 />
                 <TextField.Root
                   placeholder="Ticket track"
                   value={ticketTrack}
                   onChange={(e) => setTicketTrack(e.target.value)}
+                  aria-label="Ticket track"
                 />
                 <TextField.Root
                   placeholder="Attendee type"
                   value={ticketAttendeeType}
                   onChange={(e) => setTicketAttendeeType(e.target.value)}
+                  aria-label="Attendee type"
                 />
                 <Flex align="center" gap="2">
                   <Checkbox
@@ -329,15 +351,18 @@ export function UnifiedEventForm({
                   placeholder="NFT name"
                   value={nftName}
                   onChange={(e) => setNftName(e.target.value)}
+                  aria-label="NFT name"
                 />
                 <TextField.Root
                   placeholder="External URL"
                   value={externalUrl}
                   onChange={(e) => setExternalUrl(e.target.value)}
+                  aria-label="External URL"
                 />
                 <input
                   type="file"
                   accept="image/*"
+                  aria-label="Upload NFT image"
                   onChange={(e: ChangeEvent<HTMLInputElement>) =>
                     handleFileSelect(e.target.files?.[0] || undefined)
                   }
@@ -358,7 +383,9 @@ export function UnifiedEventForm({
         </Flex>
         {metadataBlobId ? (
           <Box mt="2">
-            <Text size="2">Metadata blob:</Text>
+            <Text size="2" aria-live="polite">
+              Metadata blob:
+            </Text>
             <Text size="1" style={{ fontFamily: "monospace" }}>
               {metadataBlobId}
             </Text>
@@ -366,7 +393,9 @@ export function UnifiedEventForm({
         ) : null}
         {createdEventId ? (
           <Box mt="2">
-            <Text size="2">Event ID:</Text>
+            <Text size="2" aria-live="polite">
+              Event ID:
+            </Text>
             <Text size="1" style={{ fontFamily: "monospace" }}>
               {createdEventId}
             </Text>
@@ -374,7 +403,9 @@ export function UnifiedEventForm({
         ) : null}
         {resultDigest ? (
           <Box mt="2">
-            <Text size="2">Tx:</Text>
+            <Text size="2" aria-live="polite">
+              Tx:
+            </Text>
             <Text size="1" style={{ fontFamily: "monospace" }}>
               {resultDigest}
             </Text>

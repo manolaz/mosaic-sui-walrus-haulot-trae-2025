@@ -6,6 +6,8 @@ import seedEvents from "../data/events.json";
 import categories from "../data/categories.json";
 import organizers from "../data/organizers.json";
 import { EventNFTs } from "../components/EventNFTs";
+import { decodeVecU8 } from "../utils/sui";
+import { isValidRangeMs } from "../utils/date";
 
 type RawFields = {
   organizer: string;
@@ -15,19 +17,6 @@ type RawFields = {
   ends_at_ms: string | number;
   reputation: string | number;
 };
-
-function decodeVecU8(v: any): string {
-  if (typeof v === "string") return v;
-  if (Array.isArray(v)) {
-    try {
-      const bytes = new Uint8Array(v as number[]);
-      return new TextDecoder().decode(bytes);
-    } catch {
-      return "";
-    }
-  }
-  return "";
-}
 
 function formatTime(ms: number): string {
   const d = new Date(ms);
@@ -49,7 +38,11 @@ function seedIdFor(e: any): string {
 
 export function Events() {
   const packageId = useNetworkVariable("MOSAIC_PACKAGE_ID");
-  const { data: txs, isPending: txsPending } = useSuiClientQuery(
+  const {
+    data: txs,
+    isPending: txsPending,
+    error: txsError,
+  } = useSuiClientQuery(
     "queryTransactionBlocks",
     {
       filter: {
@@ -78,7 +71,11 @@ export function Events() {
     });
   });
 
-  const { data: objects, isPending: objsPending } = useSuiClientQuery(
+  const {
+    data: objects,
+    isPending: objsPending,
+    error: objsError,
+  } = useSuiClientQuery(
     "multiGetObjects",
     {
       ids: createdIds,
@@ -93,6 +90,7 @@ export function Events() {
       if (!fields) return null as any;
       const startsMs = Number(fields.starts_at_ms);
       const endsMs = Number(fields.ends_at_ms);
+      if (!isValidRangeMs(startsMs, endsMs)) return null as any;
       const match = (seedEvents as any[]).find(
         (s) =>
           s.title === decodeVecU8(fields.title) &&
@@ -176,6 +174,8 @@ export function Events() {
       <EventNFTs />
 
       {!packageId ? <Text>Missing package ID</Text> : null}
+      {txsError ? <Text color="red">Error loading transactions</Text> : null}
+      {objsError ? <Text color="red">Error loading events</Text> : null}
       {txsPending || objsPending ? <Text>Loading...</Text> : null}
       {!txsPending && events.length === 0 ? null : null}
       {(events.length > 0 ? todayUpcoming : seedTodayUpcoming).length > 0 ? (

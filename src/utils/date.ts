@@ -13,6 +13,10 @@ export function isValidRange(startInput: string, endInput: string): boolean {
   return a > 0 && b > 0 && b > a;
 }
 
+export function isValidRangeMs(a: number, b: number): boolean {
+  return Number.isFinite(a) && Number.isFinite(b) && b > a && a > 0 && b > 0;
+}
+
 export function toIsoFromMs(ms: number): string {
   return new Date(ms).toISOString();
 }
