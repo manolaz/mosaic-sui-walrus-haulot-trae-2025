@@ -1,6 +1,8 @@
 import { Box, Container, Flex, Heading, Text } from "@radix-ui/themes";
 import { useSuiClientQuery } from "@mysten/dapp-kit";
 import { useNetworkVariable } from "../networkConfig";
+import seedEvents from "../data/events.json";
+import categories from "../data/categories.json";
 
 type RawFields = {
   organizer: string;
@@ -37,13 +39,17 @@ export function Events() {
     "queryTransactionBlocks",
     {
       filter: {
-        MoveFunction: { package: packageId as string, module: "event", function: "create" },
+        MoveFunction: {
+          package: packageId as string,
+          module: "event",
+          function: "create",
+        },
       },
       limit: 200,
       order: "descending",
       options: { showEffects: true },
     },
-    { enabled: !!packageId }
+    { enabled: !!packageId },
   );
 
   const createdIds: string[] = [];
@@ -64,31 +70,50 @@ export function Events() {
       ids: createdIds,
       options: { showType: true, showContent: true, showOwner: true },
     },
-    { enabled: createdIds.length > 0 }
+    { enabled: createdIds.length > 0 },
   );
 
-  const events = (objects || []).map((o: any) => {
-    const fields = (o.data?.content as any)?.fields as RawFields | undefined;
-    if (!fields) return null as any;
-    const startsMs = Number(fields.starts_at_ms);
-    const endsMs = Number(fields.ends_at_ms);
-    return {
-      id: o.data?.objectId as string,
-      organizer: fields.organizer as string,
-      title: decodeVecU8(fields.title),
-      description: decodeVecU8(fields.description),
-      startsMs,
-      endsMs,
-    };
-  }).filter(Boolean);
+  const events = (objects || [])
+    .map((o: any) => {
+      const fields = (o.data?.content as any)?.fields as RawFields | undefined;
+      if (!fields) return null as any;
+      const startsMs = Number(fields.starts_at_ms);
+      const endsMs = Number(fields.ends_at_ms);
+      const match = (seedEvents as any[]).find(
+        (s) =>
+          s.title === decodeVecU8(fields.title) &&
+          Number.isFinite(Date.parse(s.startsAt)) &&
+          Date.parse(s.startsAt) === startsMs,
+      );
+      const catSlug = match?.categorySlug as string | undefined;
+      const catName = (categories as any[]).find((c) => c.slug === catSlug)
+        ?.name as string | undefined;
+      return {
+        id: o.data?.objectId as string,
+        organizer: fields.organizer as string,
+        title: decodeVecU8(fields.title),
+        description: decodeVecU8(fields.description),
+        startsMs,
+        endsMs,
+        categoryName: catName,
+      };
+    })
+    .filter(Boolean);
 
   const now = Date.now();
   const today = new Date();
-  const todayStart = new Date(today.getFullYear(), today.getMonth(), today.getDate()).getTime();
+  const todayStart = new Date(
+    today.getFullYear(),
+    today.getMonth(),
+    today.getDate(),
+  ).getTime();
   const todayEnd = todayStart + 24 * 60 * 60 * 1000 - 1;
 
   const todayUpcoming = events
-    .filter((e) => e.startsMs >= now && e.startsMs >= todayStart && e.startsMs <= todayEnd)
+    .filter(
+      (e) =>
+        e.startsMs >= now && e.startsMs >= todayStart && e.startsMs <= todayEnd,
+    )
     .sort((a, b) => a.startsMs - b.startsMs);
 
   const future = events
@@ -104,20 +129,33 @@ export function Events() {
       {todayUpcoming.length > 0 ? <Heading size="4">☀️ Today</Heading> : null}
       <Flex direction="column" gap="2" mt="2">
         {todayUpcoming.map((e) => (
-          <Box key={e.id} p="3" style={{ border: "1px solid var(--gray-a4)", borderRadius: 16 }}>
+          <Box
+            key={e.id}
+            p="3"
+            style={{ border: "1px solid var(--gray-a4)", borderRadius: 16 }}
+          >
             <Flex justify="between" align="center">
               <Heading size="3">{e.title || e.id.slice(0, 8)}</Heading>
               <Text>{formatTime(e.startsMs)}</Text>
             </Flex>
             <Text>{e.description}</Text>
+            {e.categoryName ? <Text>Category {e.categoryName}</Text> : null}
             <Text>Organizer {e.organizer.slice(0, 8)}</Text>
           </Box>
         ))}
       </Flex>
-      {future.length > 0 ? <Heading mt="4" size="4">🌈 Upcoming</Heading> : null}
+      {future.length > 0 ? (
+        <Heading mt="4" size="4">
+          🌈 Upcoming
+        </Heading>
+      ) : null}
       <Flex direction="column" gap="2" mt="2">
         {future.map((e) => (
-          <Box key={e.id} p="3" style={{ border: "1px solid var(--gray-a4)", borderRadius: 16 }}>
+          <Box
+            key={e.id}
+            p="3"
+            style={{ border: "1px solid var(--gray-a4)", borderRadius: 16 }}
+          >
             <Flex justify="between" align="center">
               <Heading size="3">{e.title || e.id.slice(0, 8)}</Heading>
               <Text>{formatTime(e.startsMs)}</Text>

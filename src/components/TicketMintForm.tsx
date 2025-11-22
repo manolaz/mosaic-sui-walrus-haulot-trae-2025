@@ -146,35 +146,49 @@ export function TicketMintForm({ onCreate }: Props) {
 
   return (
     <Box>
-      <Flex gap="2" direction="column">
-        <input
-          placeholder="Event title"
-          value={title}
-          onChange={(e: ChangeEvent<HTMLInputElement>) =>
-            setTitle(e.target.value)
-          }
-        />
-        <input
-          placeholder="Event description"
-          value={description}
-          onChange={(e: ChangeEvent<HTMLInputElement>) =>
-            setDescription(e.target.value)
-          }
-        />
-        <input
-          placeholder="Starts at (ISO)"
-          value={startsAt}
-          onChange={(e: ChangeEvent<HTMLInputElement>) =>
-            setStartsAt(e.target.value)
-          }
-        />
-        <input
-          placeholder="Ends at (ISO)"
-          value={endsAt}
-          onChange={(e: ChangeEvent<HTMLInputElement>) =>
-            setEndsAt(e.target.value)
-          }
-        />
+      <Flex gap="3" direction="column">
+        <Flex direction="column" gap="1">
+          <label>Event title</label>
+          <input
+            value={title}
+            onChange={(e: ChangeEvent<HTMLInputElement>) =>
+              setTitle(e.target.value)
+            }
+          />
+        </Flex>
+        <Flex direction="column" gap="1">
+          <label>Event description</label>
+          <input
+            value={description}
+            onChange={(e: ChangeEvent<HTMLInputElement>) =>
+              setDescription(e.target.value)
+            }
+          />
+        </Flex>
+        <Flex gap="3" align="center">
+          <Flex direction="column" gap="1" style={{ flex: 1 }}>
+            <label>Starts at</label>
+            <input
+              type="datetime-local"
+              value={startsAt}
+              min={new Date().toISOString().slice(0, 16)}
+              onChange={(e: ChangeEvent<HTMLInputElement>) =>
+                setStartsAt(e.target.value)
+              }
+            />
+          </Flex>
+          <Flex direction="column" gap="1" style={{ flex: 1 }}>
+            <label>Ends at</label>
+            <input
+              type="datetime-local"
+              value={endsAt}
+              min={startsAt || new Date().toISOString().slice(0, 16)}
+              onChange={(e: ChangeEvent<HTMLInputElement>) =>
+                setEndsAt(e.target.value)
+              }
+            />
+          </Flex>
+        </Flex>
         <input
           placeholder="Event tracks (comma-separated)"
           value={tracksCsv}
@@ -227,7 +241,18 @@ export function TicketMintForm({ onCreate }: Props) {
           />
           <span>Opt-in to share profile for networking and follow-ups</span>
         </Flex>
-        <Button onClick={handleSubmit} disabled={!account || busy}>
+        <Button
+          onClick={handleSubmit}
+          disabled={
+            !account ||
+            busy ||
+            !startsAt ||
+            !endsAt ||
+            !Number.isFinite(Date.parse(startsAt)) ||
+            !Number.isFinite(Date.parse(endsAt)) ||
+            Date.parse(endsAt) <= Date.parse(startsAt)
+          }
+        >
           Create Event and Mint Ticket
         </Button>
         {txDigest ? <span>Tx: {txDigest}</span> : null}
