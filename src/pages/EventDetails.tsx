@@ -218,6 +218,10 @@ export function EventDetails() {
     setTxDigest(null);
     setBlobId(null);
     try {
+      const defaultImage = "/images/MOSAIC.png";
+      const chosenImageUrl = (eventImageUrl ||
+        imageUrl ||
+        defaultImage) as string;
       const meta = {
         version: "1",
         type: "ticket",
@@ -228,6 +232,7 @@ export function EventDetails() {
         organizerSlug: (seed as any)?.organizerSlug,
         startsAt: new Date(startsMs).toISOString(),
         endsAt: new Date(endsMs).toISOString(),
+        imageUrl: chosenImageUrl,
       };
       const walrusBlobId = await writeJsonToWalrus(meta, "testnet");
       setBlobId(walrusBlobId);
